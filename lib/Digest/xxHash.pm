@@ -36,10 +36,9 @@ Digest::xxHash - xxHash Implementation For Perl
 
 =head1 DESCRIPTION
 
-This module provides an interface to xxHash functions. xxHash is an extremely 
-fast Hash algorithm that claims to work at speeds close to RAM limits.
-
-This module provides both functional and OO interfaces.
+This module provides both a functional and an OO interface to xxHash functions.
+xxHash is an extremely fast (and likely very weak) algorithm that claims to work
+at speeds close to RAM limits.
 
 =head1 FUNCTIONAL INTERFACE
 
@@ -68,7 +67,8 @@ times as needed.
 
 =head2 $d->reset( )
 
-This will reset the data L<added|/"$d->add( $data )"> to the object.
+This will reset the data L<added|/"$d->add( $data )"> to the object. This is 
+great if you want to hash several pieces of data with the same seed.
 
 =head2 $h = $d->digest( )
 
@@ -81,9 +81,9 @@ and returns it as a hex string.
 
 =head1 SPEED
 
-According to the xxhash project's website, when run in a single thread on a 
-32bit Windows 7 box with a 3GHz Core 2 Duo processor, xxhash looks a little
-like:
+The strength of xxHash isn't very well documented but it's fast. According to
+the xxhash project's website, when run in a single thread on a 32bit Windows 7
+box with a 3GHz Core 2 Duo processor, xxhash looks a little like:
 
     Name            Speed       Q.Score   Author
     xxHash          5.4 GB/s     10

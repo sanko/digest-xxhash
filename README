@@ -16,11 +16,9 @@ SYNOPSIS
         my $xxhex  = $digest->digest_hex( );
 
 DESCRIPTION
-    This module provides an interface to xxHash functions. xxHash is an
-    extremely fast Hash algorithm that claims to work at speeds close to RAM
-    limits.
-
-    This module provides both functional and OO interfaces.
+    This module provides both a functional and an OO interface to xxHash
+    functions. xxHash is an extremely fast (and likely very weak) algorithm
+    that claims to work at speeds close to RAM limits.
 
 FUNCTIONAL INTERFACE
     These functions are easy to use but aren't very flexible.
@@ -42,7 +40,8 @@ OO INTERFACE
     as many times as needed.
 
   $d->reset( )
-    This will reset the data addedadd( $data )"> to the object.
+    This will reset the data addedadd( $data )"> to the object. This is
+    great if you want to hash several pieces of data with the same seed.
 
   $h = $d->digest( )
     Calculates a 32 bit hash of the data addedadd( $data )"> to the object.
@@ -52,6 +51,7 @@ OO INTERFACE
     and returns it as a hex string.
 
 SPEED
+    The strength of xxHash isn't very well documented but it's fast.
     According to the xxhash project's website, when run in a single thread
     on a 32bit Windows 7 box with a 3GHz Core 2 Duo processor, xxhash looks
     a little like:
