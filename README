@@ -40,15 +40,15 @@ OO INTERFACE
     as many times as needed.
 
   $d->reset( )
-    This will reset the data addedadd( $data )"> to the object. This is
-    great if you want to hash several pieces of data with the same seed.
+    This will reset the data added to the object. This is great if you want
+    to hash several pieces of data with the same seed.
 
   $h = $d->digest( )
-    Calculates a 32 bit hash of the data addedadd( $data )"> to the object.
+    Calculates a 32 bit hash of the data added to the object.
 
   $h = $d->digest_hex( )
-    Calculates a 32 bit hash of the data addedadd( $data )"> to the object
-    and returns it as a hex string.
+    Calculates a 32 bit hash of the data added to the object and returns it
+    as a hex string.
 
 SPEED
     The strength of xxHash isn't very well documented but it's fast.
@@ -69,9 +69,8 @@ SPEED
         SHA1-32         0.28 GB/s    10
 
     Q.Score is a measure of "quality" of the hash function. It depends on
-    successfully passing SMHasher test set
-    <http://code.google.com/p/smhasher/wiki/SMHasher>. 10 is a perfect
-    score. Hash functions with a Q.score < 5 are not listed in this table.
+    successfully passing SMHasher test set. 10 is a perfect score. Hash
+    functions with a Q.score < 5 are not listed in this table.
 
 LICENSE
     xxxHash is covered by the BSD license.

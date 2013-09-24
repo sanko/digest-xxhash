@@ -1,6 +1,10 @@
 Changes
 =======
 
+1.01 - 24 September 2013
+  * Fix U16 redef errors (cpantesters.org/cpan/report/08b0d39a-239e-11e3-b28b-bdac6d3f5dbc)
+  * POD fixes
+
 1.00 - 22 September 2013
   * OO interface added
  

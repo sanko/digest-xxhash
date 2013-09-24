@@ -4,7 +4,7 @@ use base qw(Exporter);
 use Config ();
 use XSLoader;
 BEGIN {
-    our $VERSION = '1.00';
+    our $VERSION = '1.01';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -67,16 +67,16 @@ times as needed.
 
 =head2 $d->reset( )
 
-This will reset the data L<added|/"$d->add( $data )"> to the object. This is 
+This will reset the data L<added|/"$d-E<< gt >>add( $data )"> to the object. This is 
 great if you want to hash several pieces of data with the same seed.
 
 =head2 $h = $d->digest( )
 
-Calculates a 32 bit hash of the data L<added|/"$d->add( $data )"> to the object.
+Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to the object.
 
 =head2 $h = $d->digest_hex( )
 
-Calculates a 32 bit hash of the data L<added|/"$d->add( $data )"> to the object
+Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to the object
 and returns it as a hex string.
 
 =head1 SPEED
