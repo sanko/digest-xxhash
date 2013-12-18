@@ -37,8 +37,8 @@ Digest::xxHash - xxHash Implementation For Perl
 =head1 DESCRIPTION
 
 This module provides both a functional and an OO interface to xxHash functions.
-xxHash is an extremely fast (and likely very weak) algorithm that claims to work
-at speeds close to RAM limits.
+xxHash is an extremely fast algorithm that claims to work at speeds close to RAM
+limits.
 
 =head1 FUNCTIONAL INTERFACE
 
@@ -81,8 +81,7 @@ and returns it as a hex string.
 
 =head1 SPEED
 
-The strength of xxHash isn't very well documented but it's fast. According to
-the xxhash project's website, when run in a single thread on a 32bit Windows 7
+According to the xxhash project's website, when run in a single thread on a 32bit Windows 7
 box with a 3GHz Core 2 Duo processor, xxhash looks a little like:
 
     Name            Speed       Q.Score   Author
