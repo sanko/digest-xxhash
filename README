@@ -6,9 +6,9 @@ SYNOPSIS
 
         my $hash = xxhash( $data, $seed );
         my $hex  = xxhash_hex( $data, $seed );
-    
+
         # OO remix!
-    
+
         my $digest = Digest::xxHash->new( $seed );
         $digest->add( $data );
         $digest->add( $more_data );
@@ -17,8 +17,8 @@ SYNOPSIS
 
 DESCRIPTION
     This module provides both a functional and an OO interface to xxHash
-    functions. xxHash is an extremely fast (and likely very weak) algorithm
-    that claims to work at speeds close to RAM limits.
+    functions. xxHash is an extremely fast algorithm that claims to work at
+    speeds close to RAM limits.
 
 FUNCTIONAL INTERFACE
     These functions are easy to use but aren't very flexible.
@@ -51,7 +51,6 @@ OO INTERFACE
     as a hex string.
 
 SPEED
-    The strength of xxHash isn't very well documented but it's fast.
     According to the xxhash project's website, when run in a single thread
     on a 32bit Windows 7 box with a 3GHz Core 2 Duo processor, xxhash looks
     a little like:
@@ -69,8 +68,9 @@ SPEED
         SHA1-32         0.28 GB/s    10
 
     Q.Score is a measure of "quality" of the hash function. It depends on
-    successfully passing SMHasher test set. 10 is a perfect score. Hash
-    functions with a Q.score < 5 are not listed in this table.
+    successfully passing SMHasher test set
+    <http://code.google.com/p/smhasher/wiki/SMHasher>. 10 is a perfect
+    score. Hash functions with a Q.score < 5 are not listed in this table.
 
 LICENSE
     xxxHash is covered by the BSD license.

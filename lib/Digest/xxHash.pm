@@ -4,7 +4,7 @@ use base qw(Exporter);
 use Config ();
 use XSLoader;
 BEGIN {
-    our $VERSION = '1.01';
+    our $VERSION = '1.02';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -25,9 +25,9 @@ Digest::xxHash - xxHash Implementation For Perl
 
     my $hash = xxhash( $data, $seed );
     my $hex  = xxhash_hex( $data, $seed );
-    
+
     # OO remix!
-    
+
     my $digest = Digest::xxHash->new( $seed );
     $digest->add( $data );
     $digest->add( $more_data );
@@ -36,9 +36,9 @@ Digest::xxHash - xxHash Implementation For Perl
 
 =head1 DESCRIPTION
 
-This module provides both a functional and an OO interface to xxHash functions.
-xxHash is an extremely fast algorithm that claims to work at speeds close to RAM
-limits.
+This module provides both a functional and an OO interface to xxHash
+functions. xxHash is an extremely fast algorithm that claims to work at speeds
+close to RAM limits.
 
 =head1 FUNCTIONAL INTERFACE
 
@@ -62,27 +62,29 @@ Returns a new Digest::xxHash object. This is a simple constructor.
 
 =head2 $d->add( $data )
 
-Adds data to the spool that will eventually be hashed. You may call this as many
-times as needed.
+Adds data to the spool that will eventually be hashed. You may call this as
+many times as needed.
 
 =head2 $d->reset( )
 
-This will reset the data L<added|/"$d-E<< gt >>add( $data )"> to the object. This is 
-great if you want to hash several pieces of data with the same seed.
+This will reset the data L<added|/"$d-E<< gt >>add( $data )"> to the object.
+This is great if you want to hash several pieces of data with the same seed.
 
 =head2 $h = $d->digest( )
 
-Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to the object.
+Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to
+the object.
 
 =head2 $h = $d->digest_hex( )
 
-Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to the object
-and returns it as a hex string.
+Calculates a 32 bit hash of the data L<added|/"$d-E<< gt >>add( $data )"> to
+the object and returns it as a hex string.
 
 =head1 SPEED
 
-According to the xxhash project's website, when run in a single thread on a 32bit Windows 7
-box with a 3GHz Core 2 Duo processor, xxhash looks a little like:
+According to the xxhash project's website, when run in a single thread on a
+32bit Windows 7 box with a 3GHz Core 2 Duo processor, xxhash looks a little
+like:
 
     Name            Speed       Q.Score   Author
     xxHash          5.4 GB/s     10
@@ -96,8 +98,8 @@ box with a 3GHz Core 2 Duo processor, xxhash looks a little like:
     MD5-32          0.33 GB/s    10       Ronald L. Rivest
     SHA1-32         0.28 GB/s    10
 
-Q.Score is a measure of "quality" of the hash function. It depends on 
-successfully passing 
+Q.Score is a measure of "quality" of the hash function. It depends on
+successfully passing
 L<SMHasher test set|http://code.google.com/p/smhasher/wiki/SMHasher>. 10 is a
 perfect score. Hash functions with a Q.score E<lt> 5 are not listed in this
 table.
