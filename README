@@ -62,9 +62,9 @@ SPEED
             XXH32        6.8 GB/s            6.0 GB/s
 
 LICENSE
-    xxxHash is covered by the BSD license.
+    xxHash is covered by the BSD license.
 
-    I don't actually care about the wrapper I've written.
+    License-wise, I don't actually care about the wrapper I've written.
 
 AUTHOR
     Sanko Robinson <sanko@cpan.org>
