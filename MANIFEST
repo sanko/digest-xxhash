@@ -1,12 +1,21 @@
 Build.PL
 Changes
+ext/xxHash/.gitattributes
+ext/xxHash/.travis.yml
+ext/xxHash/cmake_unofficial/CMakeLists.txt
+ext/xxHash/LICENSE
+ext/xxHash/README.md
+ext/xxHash/xxhash.c
+ext/xxHash/xxhash.h
+ext/xxHash/xxhsum.c
+lib/Digest/xxHash.c
 lib/Digest/xxHash.pm
+lib/Digest/xxHash.xs
 LICENSE
 MANIFEST			This list of files
 META.json
 META.yml
-src/xxhash.h
+README
 t/001_basic.t
 TODO
 xxHash.xs
-README

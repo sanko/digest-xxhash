@@ -13,12 +13,11 @@ my $build = Module::Build->new(
         'Test::More'         => 0
     },
     requires       => { },
-    c_source       => 'src',
     needs_compiler => 1,
     #extra_compiler_flags => ['-Wall -W -Wundef -Wno-implicit-function-declaration'],
     #extra_linker_flags => [ ],
     include_dirs   => ['.'],
-    c_source       => ['src'],
+    c_source       => ['ext/xxHash'],
     xs_files       => {
         './xxHash.xs' => 'lib/Digest/xxHash.xs' 
     },
