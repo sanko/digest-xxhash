@@ -8,9 +8,7 @@ ext/xxHash/README.md
 ext/xxHash/xxhash.c
 ext/xxHash/xxhash.h
 ext/xxHash/xxhsum.c
-lib/Digest/xxHash.c
 lib/Digest/xxHash.pm
-lib/Digest/xxHash.xs
 LICENSE
 MANIFEST			This list of files
 META.json

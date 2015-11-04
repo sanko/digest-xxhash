@@ -3,6 +3,11 @@ Changes
 
 2.00 - 04 November 2015
   * Bring xxHash library up to date (as of 44a6297b)
+  * Include 64 bit hash functions
+  * Remove (really useless in hindsight) object oriented interface
+  * Jump to twopointohoh as API has changed!
+  * Breaking change: xxhash(...) becomes xxhash32(...)
+  * Breaking change: xxhash_hex(...) becomes xxhash32_hex(...)
 
 1.02 - 24 December 2013
   * Minor POD tweak

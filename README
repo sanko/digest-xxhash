@@ -2,53 +2,33 @@ NAME
     Digest::xxHash - xxHash Implementation For Perl
 
 SYNOPSIS
-        use Digest::xxHash qw[xxhash xxhash_hex];
+        use Digest::xxHash qw[xxhash32 xxhash32_hex];
 
-        my $hash = xxhash( $data, $seed );
-        my $hex  = xxhash_hex( $data, $seed );
+        my $hash = xxhash32( $data, $seed );
+        my $hex  = xxhash32_hex( $data, $seed );
 
-        # OO remix!
-
-        my $digest = Digest::xxHash->new( $seed );
-        $digest->add( $data );
-        $digest->add( $more_data );
-        my $xxhash = $digest->digest( );
-        my $xxhex  = $digest->digest_hex( );
+        my $hash_64 = xxhash64( $data, $seed );
+        my $hex_64  = xxhash64_hex( $data, $seed );
 
 DESCRIPTION
-    This module provides both a functional and an OO interface to xxHash
-    functions. xxHash is an extremely fast algorithm that claims to work at
-    speeds close to RAM limits.
+    This module provides both a functional and an object oriented interface
+    to xxHash functions. xxHash is an extremely fast algorithm that claims
+    to work at speeds close to RAM limits.
 
 FUNCTIONAL INTERFACE
     These functions are easy to use but aren't very flexible.
 
-  $h = xxhash( $data, $seed )
+  $h = xxhash32( $data, $seed )
     Calculates a 32 bit hash.
 
-  $h = xxhash_hex( $data, $seed )
+  $h = xxhash32_hex( $data, $seed )
     Calculates a 32 bit hash and returns it as a hex string.
 
-OO INTERFACE
-    The OO interface is a lot more flexible but less succinct.
+  $h = xxhash64( $data, $seed )
+    Calculates a 64 bit hash.
 
-  $d = Digest::xxHash->new( $seed )
-    Returns a new Digest::xxHash object. This is a simple constructor.
-
-  $d->add( $data )
-    Adds data to the spool that will eventually be hashed. You may call this
-    as many times as needed.
-
-  $d->reset( )
-    This will reset the data added to the object. This is great if you want
-    to hash several pieces of data with the same seed.
-
-  $h = $d->digest( )
-    Calculates a 32 bit hash of the data added to the object.
-
-  $h = $d->digest_hex( )
-    Calculates a 32 bit hash of the data added to the object and returns it
-    as a hex string.
+  $h = xxhash64_hex( $data, $seed )
+    Calculates a 64 bit hash and returns it as a hex string.
 
 SPEED
     According to the xxhash project's website, when run in a single thread
@@ -57,20 +37,29 @@ SPEED
 
         Name            Speed       Q.Score   Author
         xxHash          5.4 GB/s     10
-        MumurHash 3a    2.7 GB/s     10       Austin Appleby
-        SpookyHash      2.0 GB/s     10       Bob Jenkins
-        SBox            1.4 GB/s      9       Bret Mulvey
-        Lookup3         1.2 GB/s      9       Bob Jenkins
-        CityHash64      1.05 GB/s    10       Pike & Alakuijala
-        FNV             0.55 GB/s     5       Fowler, Noll, Vo
-        CRC32           0.43 GB/s     9
-        MD5-32          0.33 GB/s    10       Ronald L. Rivest
-        SHA1-32         0.28 GB/s    10
+            CrapWow         3.2 GB/s      2       Andrew
+            MumurHash 3a    2.7 GB/s     10       Austin Appleby
+            SpookyHash      2.0 GB/s     10       Bob Jenkins
+            SBox            1.4 GB/s      9       Bret Mulvey
+            Lookup3         1.2 GB/s      9       Bob Jenkins
+            SuperFastHash   1.2 GB/s      1       Paul Hsieh
+            CityHash64      1.05 GB/s    10       Pike & Alakuijala
+            FNV             0.55 GB/s     5       Fowler, Noll, Vo
+            CRC32           0.43 GB/s     9
+            MD5-32          0.33 GB/s    10       Ronald L. Rivest
+            SHA1-32         0.28 GB/s    10
 
     Q.Score is a measure of "quality" of the hash function. It depends on
     successfully passing SMHasher test set
     <http://code.google.com/p/smhasher/wiki/SMHasher>. 10 is a perfect
     score. Hash functions with a Q.score < 5 are not listed in this table.
+
+    A 64-bits version, named XXH64, is available since (upstream) r35. It
+    offers much better speed, but for 64-bits applications only.
+
+            Name     Speed on 64 bits    Speed on 32 bits
+            XXH64       13.8 GB/s            1.9 GB/s
+            XXH32        6.8 GB/s            6.0 GB/s
 
 LICENSE
     xxxHash is covered by the BSD license.
