@@ -4,7 +4,7 @@ use base qw(Exporter);
 use Config ();
 use XSLoader;
 BEGIN {
-    our $VERSION = '2.00';
+    our $VERSION = '2.01';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -23,7 +23,7 @@ Digest::xxHash - xxHash Implementation For Perl
 
 =head1 SYNOPSIS
 
-    use Digest::xxHash qw[xxhash32 xxhash32_hex];
+    use Digest::xxHash qw[xxhash32 xxhash32_hex xxhash64 xxhash64_hex];
 
     my $hash = xxhash32( $data, $seed );
     my $hex  = xxhash32_hex( $data, $seed );
@@ -33,9 +33,8 @@ Digest::xxHash - xxHash Implementation For Perl
 
 =head1 DESCRIPTION
 
-This module provides both a functional and an object oriented interface to
-xxHash functions. xxHash is an extremely fast algorithm that claims to work at
-speeds close to RAM limits.
+xxHash is an extremely fast algorithm that claims to work at speeds close to RAM
+limits. This is a wrapper of both the 32- and 64-bit hash functions.
 
 =head1 FUNCTIONAL INTERFACE
 

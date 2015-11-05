@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.01 - ?? November 2015
+  * Documentation fix
+
 2.00 - 04 November 2015
   * Bring xxHash library up to date (as of 44a6297b)
   * Include 64 bit hash functions

@@ -2,7 +2,7 @@ NAME
     Digest::xxHash - xxHash Implementation For Perl
 
 SYNOPSIS
-        use Digest::xxHash qw[xxhash32 xxhash32_hex];
+        use Digest::xxHash qw[xxhash32 xxhash32_hex xxhash64 xxhash64_hex];
 
         my $hash = xxhash32( $data, $seed );
         my $hex  = xxhash32_hex( $data, $seed );
@@ -11,9 +11,9 @@ SYNOPSIS
         my $hex_64  = xxhash64_hex( $data, $seed );
 
 DESCRIPTION
-    This module provides both a functional and an object oriented interface
-    to xxHash functions. xxHash is an extremely fast algorithm that claims
-    to work at speeds close to RAM limits.
+    xxHash is an extremely fast algorithm that claims to work at speeds
+    close to RAM limits. This is a wrapper of both the 32- and 64-bit hash
+    functions.
 
 FUNCTIONAL INTERFACE
     These functions are easy to use but aren't very flexible.
