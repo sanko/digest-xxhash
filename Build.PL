@@ -6,18 +6,20 @@ my $build = Module::Build->new(
     license             => 'bsd',
     create_readme       => 1,
     configure_requires  => {
-        'Module::Build' => '0.19', # xs
+        'Module::Build' => '0.19' # xs
     },
     build_requires       => {
         'ExtUtils::CBuilder' => 0,
         'Test::More'         => 0
     },
-    requires       => { },
+    requires       => {
+		'Math::Int64' => '0.53' # 32bit perl without int64 :\
+	},
     needs_compiler => 1,
     #extra_compiler_flags => ['-Wall -W -Wundef -Wno-implicit-function-declaration'],
     #extra_linker_flags => [ ],
     include_dirs   => ['.'],
-    c_source       => ['ext/xxHash'],
+    c_source       => ['ext/xxHash', 'ext/perl_math_int64'],
     xs_files       => {
         './xxHash.xs' => 'lib/Digest/xxHash.xs' 
     },

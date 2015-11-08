@@ -2,6 +2,7 @@ use lib 'blib', 'lib';
 use Test::More;
 use strict;
 use warnings;
+use Math::Int64 qw[uint64 hex_to_uint64];
 no warnings 'portable';  # Support for 64-bit ints required
 use Digest::xxHash qw[xxhash32 xxhash32_hex
 					  xxhash64 xxhash64_hex];
@@ -25,12 +26,10 @@ is xxhash32('test', 12345), 3834992036;
 is xxhash32_hex('test', 12345), 'e49555a4', 'xxhash32_hex';
 
 # 64bit
-is xxhash64('test64', 1123), 18300740539230391133;
-is xxhash64('test64', 5813), 470519085964830776;
+is uint64(xxhash64('test64', 1123)), uint64('18300740539230391133');
+is uint64(xxhash64('test64', 5813)), uint64('470519085964830776');
 
-is xxhash64_hex('test64', 8421), 'a886f98d', 'xxhash64_hex';
-
-
+is xxhash64_hex('test64', 5813), '6879e9da2f9a838', 'xxhash64_hex';
 
 my $SANITY_BUFFER_SIZE = 101;
 my $prime = 2654435761;
@@ -43,7 +42,7 @@ sub BMK_testSequence {
 
 sub BMK_testSequence64 { 
 	my ($sentence, $len, $seed, $result) = @_;
-	is xxhash64(pack('a' . $len, $sentence), $seed), $result, 'line ' . (caller())[2];
+	is uint64(xxhash64(pack('a' . $len, $sentence), $seed)), hex_to_uint64($result), 'line ' . (caller())[2];
 }
 
 BMK_testSequence('',          0, 0,     0x02CC5D05);
@@ -55,14 +54,14 @@ BMK_testSequence($sanityBuffer, 14, $prime, 0x4481951D);
 BMK_testSequence($sanityBuffer, $SANITY_BUFFER_SIZE, 0,     0x1F1AA412);
 BMK_testSequence($sanityBuffer, $SANITY_BUFFER_SIZE, $prime, 0x498EC8E2);
 
-BMK_testSequence64('',  		   0, 0,     0xEF46DB3751D8E999);
-BMK_testSequence64('',          0, $prime,     0xAC75FDA2929B17EF);
-BMK_testSequence64($sanityBuffer,  1, 0,     0x4FCE394CC88952D8);
-BMK_testSequence64($sanityBuffer,  1, $prime, 0x739840CB819FA723);
-BMK_testSequence64($sanityBuffer, 14, 0,     0xCFFA8DB881BC3A3D);
-BMK_testSequence64($sanityBuffer, 14, $prime, 0x5B9611585EFCC9CB);
-BMK_testSequence64($sanityBuffer, $SANITY_BUFFER_SIZE, 0,     0x0EAB543384F878AD);
-BMK_testSequence64($sanityBuffer, $SANITY_BUFFER_SIZE, $prime, 0xCAA65939306F1E21);
+BMK_testSequence64('',  		   0, 0,     'EF46DB3751D8E999');
+BMK_testSequence64('',          0, $prime,     'AC75FDA2929B17EF');
+BMK_testSequence64($sanityBuffer,  1, 0,     '4FCE394CC88952D8');
+BMK_testSequence64($sanityBuffer,  1, $prime, '739840CB819FA723');
+BMK_testSequence64($sanityBuffer, 14, 0,     'CFFA8DB881BC3A3D');
+BMK_testSequence64($sanityBuffer, 14, $prime, '5B9611585EFCC9CB');
+BMK_testSequence64($sanityBuffer, $SANITY_BUFFER_SIZE, 0,     '0EAB543384F878AD');
+BMK_testSequence64($sanityBuffer, $SANITY_BUFFER_SIZE, $prime, 'CAA65939306F1E21');
 
 # TODO: 128, 256
 

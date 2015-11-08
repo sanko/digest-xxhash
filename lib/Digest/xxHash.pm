@@ -3,8 +3,9 @@ use strict;
 use base qw(Exporter);
 use Config ();
 use XSLoader;
+use Math::Int64 qw[int64_to_hex];
 BEGIN {
-    our $VERSION = '2.01';
+    our $VERSION = '2.00_004';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -12,8 +13,7 @@ our @EXPORT_OK = qw[xxhash32 xxhash32_hex
 					xxhash64 xxhash64_hex];
 
 sub xxhash32_hex{unpack('H*', pack('N', xxhash32(@_)))}
-sub xxhash64_hex{unpack('H*', pack('N', xxhash64(@_)))}
-
+sub xxhash64_hex{lc int64_to_hex(xxhash64(@_))}
 1;
 __END__
 

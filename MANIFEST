@@ -1,5 +1,7 @@
 Build.PL
 Changes
+ext/perl_math_int64/perl_math_int64.c
+ext/perl_math_int64/perl_math_int64.h
 ext/xxHash/.gitattributes
 ext/xxHash/.travis.yml
 ext/xxHash/cmake_unofficial/CMakeLists.txt
@@ -13,6 +15,7 @@ LICENSE
 MANIFEST			This list of files
 META.json
 META.yml
+ppport.h
 README
 t/001_basic.t
 TODO
