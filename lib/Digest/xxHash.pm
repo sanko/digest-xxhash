@@ -5,7 +5,7 @@ use Config ();
 use XSLoader;
 use Math::Int64 qw[int64_to_hex];
 BEGIN {
-    our $VERSION = '2.00_004';
+    our $VERSION = '2.01';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 

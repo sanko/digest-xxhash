@@ -17,7 +17,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 /* uncomment the following line to use native IVs if they are 64bits long */
-/* #define MATH_INT64_NATIVE_IF_AVAILABLE */
+#define MATH_INT64_NATIVE_IF_AVAILABLE
 
 #include "perl_math_int64.h"
 
@@ -27,35 +27,17 @@ MODULE = Digest::xxHash  PACKAGE = Digest::xxHash
 
 PROTOTYPES: DISABLE
 
-
 TYPEMAP: <<HERE
-int64_t         T_INT64
 uint64_t        T_UINT64
 
 INPUT
-T_INT64
-        $var = SvI64($arg);
-
 T_UINT64
         $var = SvU64($arg);
 
 OUTPUT
-T_INT64
-        $arg = newSVi64($var);
-
 T_UINT64
         $arg = newSVu64($var);
 HERE
-
-
-uint64_t
-xxhash64_hex(u64, int length(input), UV seed )
-    uint64_t u64
-CODE:
-    //RETVAL = u64 * u64;
-    RETVAL = randU64();
-OUTPUT:
-    RETVAL
 
 U32
 xxhash32( const char *input, int length(input), UV seed )

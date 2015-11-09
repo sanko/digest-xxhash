@@ -1,9 +1,9 @@
 Changes
 =======
 
-2.01 - ?? November 2015
+2.01 - 09 November 2015
   * Documentation fix
-  * Full support for 64bit hashes on 32bit perl built without int64
+  * Full support for 64bit hashes on 32bit perls built without int64 (basically just DWIM Perl)
 
 2.00 - 04 November 2015
   * Bring xxHash library up to date (as of 44a6297b)
