@@ -5,7 +5,7 @@ use Config ();
 use XSLoader;
 use Math::Int64 qw[int64_to_hex];
 BEGIN {
-    our $VERSION = '2.01';
+    our $VERSION = '2.02';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 
@@ -84,7 +84,7 @@ table.
 
 A 64-bits version, named XXH64, is available since (upstream) r35.
 It offers much better speed, but for 64-bits applications only.
-	
+
 	Name     Speed on 64 bits    Speed on 32 bits
 	XXH64       13.8 GB/s            1.9 GB/s
 	XXH32        6.8 GB/s            6.0 GB/s
