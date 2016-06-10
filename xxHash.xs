@@ -27,18 +27,6 @@ MODULE = Digest::xxHash  PACKAGE = Digest::xxHash
 
 PROTOTYPES: DISABLE
 
-TYPEMAP: <<HERE
-uint64_t        T_UINT64
-
-INPUT
-T_UINT64
-        $var = SvU64($arg);
-
-OUTPUT
-T_UINT64
-        $arg = newSVu64($var);
-HERE
-
 U32
 xxhash32( const char *input, int length(input), UV seed )
     CODE:
