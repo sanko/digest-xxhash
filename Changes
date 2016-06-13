@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.03 - 13 June 2016
+  * Permissions could cause repeat builds to fail in v2.02
+
 2.02 - 10 June 2016
   * Update xxHash lib to 860118 (June 2nd, 2016)
 
