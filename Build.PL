@@ -6,7 +6,7 @@ my $build = Module::Build->new(
     license             => 'bsd',
     create_readme       => 1,
     configure_requires  => {
-        'Module::Build' => '0.19' # xs
+        'Module::Build' => '0.4229' # xs
     },
     build_requires       => {
         'ExtUtils::CBuilder' => 0,

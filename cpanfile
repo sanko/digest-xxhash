@@ -1,7 +1,8 @@
-requires 'perl', '5.012';
+requires 'perl', '5.022';
 
 on 'build' => sub {
 	requires 'ExtUtils::CBuilder';
+	requires 'Module::Build';
 };
 
 on 'test' => sub {
