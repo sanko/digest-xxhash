@@ -9,12 +9,10 @@ BEGIN {
     our $VERSION = '2.03';
     XSLoader::load __PACKAGE__, $VERSION;
 }
-
 our @EXPORT_OK = qw[xxhash32 xxhash32_hex
-					xxhash64 xxhash64_hex];
-
-sub xxhash32_hex{unpack('H*', pack('N', xxhash32(@_)))}
-sub xxhash64_hex {lc uint64_to_hex(xxhash64(@_))}
+    xxhash64 xxhash64_hex];
+sub xxhash32_hex { unpack('H8', pack('N', xxhash32(@_))) }
+sub xxhash64_hex { lc sprintf '%016s', uint64_to_hex(xxhash64(@_)) }
 1;
 __END__
 
