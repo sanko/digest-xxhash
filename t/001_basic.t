@@ -45,6 +45,9 @@ sub BMK_testSequence64 {
 	is uint64(xxhash64(pack('a' . $len, $sentence), $seed)), hex_to_uint64($result), 'line ' . (caller())[2];
 }
 
+# Issue 4
+is xxhash64_hex("b"x100000,890272), 'df8fee94dbf20a9d', 'uint64 fix to match xxHash.xs';
+is xxhash64_hex("b"x100000,89) ,'01aae2582443bbf0', 'expect leading zeros';
 BMK_testSequence('',          0, 0,     0x02CC5D05);
 BMK_testSequence('',          0, $prime, 0x36B78AE7);
 BMK_testSequence($sanityBuffer,  1, 0,     0xB85CBEE5);
