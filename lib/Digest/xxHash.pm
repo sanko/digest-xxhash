@@ -6,7 +6,7 @@ use XSLoader;
 use Math::Int64 qw[uint64_to_hex];
 
 BEGIN {
-    our $VERSION = '2.04';
+    our $VERSION = '2.05';
     XSLoader::load __PACKAGE__, $VERSION;
 }
 our @EXPORT_OK = qw[xxhash32 xxhash32_hex
