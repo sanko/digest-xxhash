@@ -1,6 +1,9 @@
 Changes
 =======
 
+2.05 - 21 August 2020
+  * Update xxHash lib to v0.8.0 (July 27th, 2020)
+
 2.04 - 05 September 2019
   * Fix mishandling unsigned 64bit integers when moving from XS to pure Perl
   * Prepend zeros to hex values
