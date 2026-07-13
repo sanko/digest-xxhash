@@ -104,8 +104,7 @@ ext/xxHash/xxh_x86dispatch.c
 ext/xxHash/xxh_x86dispatch.h
 ext/xxHash/xxhash.c
 ext/xxHash/xxhash.h
+lib/Digest/ppport.h
+lib/Digest/xxHash.c
 lib/Digest/xxHash.pm
-ppport.h
 t/001_basic.t
-typemap
-xxHash.xs
