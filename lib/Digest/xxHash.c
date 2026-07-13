@@ -1,23 +1,10 @@
-/*
- * Generated from xxHash.xs via xsubpp, then hand-optimized.
- * - Removed XSauto_length dead code
- * - Removed dVAR (no-op since 5.10)
- * - Removed #line debug directives
- * - Force-inlined hex helpers with unrolled loops
- */
-
-/*
- * Pre-generated from xxHash.xs via xsubpp, then hand-optimized.
- * - Removed XSauto_length dead code
- * - Removed dVAR (no-op since 5.10)
- * - Force-inlined hex helpers with unrolled loops
- * - Eliminated sprintf for fixed-width hex output
- * - Removed ppport.h (not needed without .xs)
- */
-
+// Disables the implicit 'pTHX_' context pointer argument, which is good practice for
+// modern Perl XS code that uses the 'aTHX_' macro explicitly.
 #define PERL_NO_GET_CONTEXT 1
 #include <EXTERN.h>
 #include <perl.h>
+// Disables Perl's internal locking mechanisms for certain structures.
+// This is often used when the XS module manages its own thread safety.
 #define NO_XSLOCKS
 #include <XSUB.h>
 
@@ -39,8 +26,6 @@ typedef unsigned __int64 uint64_t;
 
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"
-
-/* ---- Fast hex formatting (no sprintf) ---- */
 
 static const char hex_chars[16] = "0123456789abcdef";
 
@@ -82,8 +67,6 @@ FORCE_INLINE void write_hex64(char * buf, uint64_t val) {
     buf[15] = hex_chars[(val) & 0xf];
 }
 
-/* ---- XS glue ---- */
-
 #ifndef PERL_UNUSED_VAR
 #define PERL_UNUSED_VAR(var) \
     if (0)                   \
@@ -94,84 +77,11 @@ FORCE_INLINE void write_hex64(char * buf, uint64_t val) {
 #define dVAR dNOOP
 #endif
 
-/* This stuff is not part of the API! You have been warned. */
-#ifndef PERL_VERSION_DECIMAL
-#define PERL_VERSION_DECIMAL(r, v, s) (r * 1000000 + v * 1000 + s)
-#endif
-#ifndef PERL_DECIMAL_VERSION
-#define PERL_DECIMAL_VERSION PERL_VERSION_DECIMAL(PERL_REVISION, PERL_VERSION, PERL_SUBVERSION)
-#endif
-#ifndef PERL_VERSION_GE
-#define PERL_VERSION_GE(r, v, s) (PERL_DECIMAL_VERSION >= PERL_VERSION_DECIMAL(r, v, s))
-#endif
-#ifndef PERL_VERSION_LE
-#define PERL_VERSION_LE(r, v, s) (PERL_DECIMAL_VERSION <= PERL_VERSION_DECIMAL(r, v, s))
-#endif
-
-/* XS_INTERNAL is the explicit static-linkage variant of the default
- * XS macro.
- *
- * XS_EXTERNAL is the same as XS_INTERNAL except it does not include
- * "STATIC", ie. it exports XSUB symbols. You probably don't want that
- * for anything but the BOOT XSUB.
- *
- * See XSUB.h in core!
- */
-
-/* TODO: This might be compatible further back than 5.10.0. */
-#if PERL_VERSION_GE(5, 10, 0) && PERL_VERSION_LE(5, 15, 1)
-#undef XS_EXTERNAL
 #undef XS_INTERNAL
-#if defined(__CYGWIN__) && defined(USE_DYNAMIC_LOADING)
-#define XS_EXTERNAL(name) __declspec(dllexport) XSPROTO(name)
-#define XS_INTERNAL(name) STATIC XSPROTO(name)
-#endif
-#if defined(__SYMBIAN32__)
-#define XS_EXTERNAL(name) EXPORT_C XSPROTO(name)
-#define XS_INTERNAL(name) EXPORT_C STATIC XSPROTO(name)
-#endif
-#ifndef XS_EXTERNAL
-#if defined(HASATTRIBUTE_UNUSED) && !defined(__cplusplus)
-#define XS_EXTERNAL(name) void name(pTHX_ CV * cv __attribute__unused__)
-#define XS_INTERNAL(name) STATIC void name(pTHX_ CV * cv __attribute__unused__)
-#else
-#ifdef __cplusplus
-#define XS_EXTERNAL(name) extern "C" XSPROTO(name)
-#define XS_INTERNAL(name) static XSPROTO(name)
-#else
-#define XS_EXTERNAL(name) XSPROTO(name)
-#define XS_INTERNAL(name) STATIC XSPROTO(name)
-#endif
-#endif
-#endif
-#endif
-
-/* perl >= 5.10.0 && perl <= 5.15.1 */
-
-/* The XS_EXTERNAL macro is used for functions that must not be static
- * like the boot XSUB of a module. If perl didn't have an XS_EXTERNAL
- * macro defined, the best we can do is assume XS is the same.
- * Dito for XS_INTERNAL.
- */
-#ifndef XS_EXTERNAL
-#define XS_EXTERNAL(name) XS(name)
-#endif
-#ifndef XS_INTERNAL
-#define XS_INTERNAL(name) XS(name)
-#endif
-
-/* Now, finally, after all this mess, we want an ExtUtils::ParseXS
- * internal macro that we're free to redefine for varying linkage due
- * to the EXPORT_XSUB_SYMBOLS XS keyword. This is internal, use
- * XS_EXTERNAL(name) or XS_INTERNAL(name) in your code if you need to!
- */
-
-#undef XS_EUPXS
 #if defined(PERL_EUPXS_ALWAYS_EXPORT)
-#define XS_EUPXS(name) XS_EXTERNAL(name)
+#define XS_INTERNAL(name) XS_EXTERNAL(name)
 #else
-/* default to internal */
-#define XS_EUPXS(name) XS_INTERNAL(name)
+#define XS_INTERNAL(name) XS(name)
 #endif
 
 #ifndef PERL_ARGS_ASSERT_CROAK_XS_USAGE
@@ -179,7 +89,6 @@ FORCE_INLINE void write_hex64(char * buf, uint64_t val) {
     assert(cv);                         \
     assert(params)
 
-/* prototype to pass -Wmissing-prototypes */
 STATIC void S_croak_xs_usage(const CV * const cv, const char * const params);
 
 STATIC void S_croak_xs_usage(const CV * const cv, const char * const params) {
@@ -198,41 +107,21 @@ STATIC void S_croak_xs_usage(const CV * const cv, const char * const params) {
             Perl_croak_nocontext("Usage: %s(%s)", gvname, params);
     }
     else {
-        /* Pants. I don't think that it should be possible to get here. */
         Perl_croak_nocontext("Usage: CODE(0x%" UVxf ")(%s)", PTR2UV(cv), params);
     }
 }
 #undef PERL_ARGS_ASSERT_CROAK_XS_USAGE
-
 #define croak_xs_usage S_croak_xs_usage
 
 #endif
 
-/* NOTE: the prototype of newXSproto() is different in versions of perls,
- * so we define a portable version of newXSproto()
- */
 #ifdef newXS_flags
-#define newXSproto_portable(name, c_impl, file, proto) newXS_flags(name, c_impl, file, proto, 0)
+#define newXSproto_portable(name, c_impl, file) newXS_flags(name, c_impl, file, NULL, 0)
 #else
-#define newXSproto_portable(name, c_impl, file, proto) \
-    (PL_Sv = (SV *)newXS(name, c_impl, file), sv_setpv(PL_Sv, proto), (CV *)PL_Sv)
-#endif /* !defined(newXS_flags) */
-
-#if PERL_VERSION_LE(5, 21, 5)
-#define newXS_deffile(a, b) Perl_newXS(aTHX_ a, b, file)
-#else
-#define newXS_deffile(a, b) Perl_newXS_deffile(aTHX_ a, b)
+#define newXSproto_portable(name, c_impl, file) (PL_Sv = (SV *)newXS(name, c_impl, file), (CV *)PL_Sv)
 #endif
 
-/* simple backcompat versions of the TARGx() macros with no optimisation */
-#ifndef TARGi
-#define TARGi(iv, do_taint) sv_setiv_mg(TARG, iv)
-#define TARGu(uv, do_taint) sv_setuv_mg(TARG, uv)
-#define TARGn(nv, do_taint) sv_setnv_mg(TARG, nv)
-#endif
-
-XS_EUPXS(XS_Digest__xxHash_xxhash32); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxhash32) {
+XS_INTERNAL(Digest_xxHash_xxhash32) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -250,8 +139,7 @@ XS_EUPXS(XS_Digest__xxHash_xxhash32) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxhash64); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxhash64) {
+XS_INTERNAL(Digest_xxHash_xxhash64) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -269,8 +157,7 @@ XS_EUPXS(XS_Digest__xxHash_xxhash64) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxh3_64); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxh3_64) {
+XS_INTERNAL(Digest_xxHash_xxh3_64) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -288,8 +175,7 @@ XS_EUPXS(XS_Digest__xxHash_xxh3_64) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxhash32_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxhash32_hex) {
+XS_INTERNAL(Digest_xxHash_xxhash32_hex) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -309,8 +195,7 @@ XS_EUPXS(XS_Digest__xxHash_xxhash32_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxhash64_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxhash64_hex) {
+XS_INTERNAL(Digest_xxHash_xxhash64_hex) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -330,8 +215,7 @@ XS_EUPXS(XS_Digest__xxHash_xxhash64_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxh3_64_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxh3_64_hex) {
+XS_INTERNAL(Digest_xxHash_xxh3_64_hex) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -351,8 +235,7 @@ XS_EUPXS(XS_Digest__xxHash_xxh3_64_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxh3_128); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxh3_128) {
+XS_INTERNAL(Digest_xxHash_xxh3_128) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -373,8 +256,7 @@ XS_EUPXS(XS_Digest__xxHash_xxh3_128) {
     }
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxh3_128_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxh3_128_hex) {
+XS_INTERNAL(Digest_xxHash_xxh3_128_hex) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
@@ -396,8 +278,7 @@ XS_EUPXS(XS_Digest__xxHash_xxh3_128_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash_xxh3_generate_secret_from_seed); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash_xxh3_generate_secret_from_seed) {
+XS_INTERNAL(Digest_xxHash_xxh3_generate_secret_from_seed) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "seed");
@@ -415,8 +296,7 @@ XS_EUPXS(XS_Digest__xxHash_xxh3_generate_secret_from_seed) {
     }
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_create); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_create) {
+XS_INTERNAL(Digest_xxHash_xxxh32_create) {
     dXSARGS;
     if (items != 0)
         croak_xs_usage(cv, "");
@@ -430,8 +310,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_create) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_free); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_free) {
+XS_INTERNAL(Digest_xxHash_xxxh32_free) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -442,8 +321,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_free) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_copy); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_copy) {
+XS_INTERNAL(Digest_xxHash_xxxh32_copy) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "dst, src");
@@ -455,8 +333,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_copy) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_reset); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_reset) {
+XS_INTERNAL(Digest_xxHash_xxxh32_reset) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, seed");
@@ -472,8 +349,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_reset) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_update); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_update) {
+XS_INTERNAL(Digest_xxHash_xxxh32_update) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, input");
@@ -491,8 +367,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_update) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_digest); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_digest) {
+XS_INTERNAL(Digest_xxHash_xxxh32_digest) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -507,8 +382,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_digest) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_create); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_create) {
+XS_INTERNAL(Digest_xxHash_xxxh64_create) {
     dXSARGS;
     if (items != 0)
         croak_xs_usage(cv, "");
@@ -522,8 +396,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_create) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_free); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_free) {
+XS_INTERNAL(Digest_xxHash_xxxh64_free) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -534,8 +407,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_free) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_copy); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_copy) {
+XS_INTERNAL(Digest_xxHash_xxxh64_copy) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "dst, src");
@@ -547,8 +419,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_copy) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_reset); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_reset) {
+XS_INTERNAL(Digest_xxHash_xxxh64_reset) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, seed");
@@ -564,8 +435,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_reset) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_update); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_update) {
+XS_INTERNAL(Digest_xxHash_xxxh64_update) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, input");
@@ -583,8 +453,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_update) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_digest); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_digest) {
+XS_INTERNAL(Digest_xxHash_xxxh64_digest) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -605,8 +474,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_digest) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_create); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_create) {
+XS_INTERNAL(Digest_xxHash_xxxh3_create) {
     dXSARGS;
     if (items != 0)
         croak_xs_usage(cv, "");
@@ -620,8 +488,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_create) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_free); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_free) {
+XS_INTERNAL(Digest_xxHash_xxxh3_free) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -632,8 +499,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_free) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_copy); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_copy) {
+XS_INTERNAL(Digest_xxHash_xxxh3_copy) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "dst, src");
@@ -645,8 +511,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_copy) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -661,8 +526,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSeed); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSeed) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSeed) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, seed");
@@ -678,8 +542,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSeed) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecret); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecret) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSecret) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, secret");
@@ -697,8 +560,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecret) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecretandSeed); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecretandSeed) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSecretandSeed) {
     dXSARGS;
     if (items != 3)
         croak_xs_usage(cv, "ctx, secret, seed");
@@ -718,8 +580,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_reset_withSecretandSeed) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_update); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_update) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_update) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, input");
@@ -737,8 +598,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_update) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_digest); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_digest) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_digest) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -759,8 +619,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_digest) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -771,8 +630,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSeed); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSeed) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSeed) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, seed");
@@ -784,8 +642,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSeed) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecret); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecret) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSecret) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, secret");
@@ -799,8 +656,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecret) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecretandSeed); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecretandSeed) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSecretandSeed) {
     dXSARGS;
     if (items != 3)
         croak_xs_usage(cv, "ctx, secret, seed");
@@ -815,8 +671,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_reset_withSecretandSeed) {
     XSRETURN_EMPTY;
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_update); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_update) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_update) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "ctx, input");
@@ -834,8 +689,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_update) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_digest); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_digest) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_digest) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -853,8 +707,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_digest) {
     }
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh32_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh32_hex) {
+XS_INTERNAL(Digest_xxHash_xxxh32_hex) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -871,8 +724,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh32_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh64_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh64_hex) {
+XS_INTERNAL(Digest_xxHash_xxxh64_hex) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -889,8 +741,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh64_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_hex) {
+XS_INTERNAL(Digest_xxHash_xxxh3_64bits_hex) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -907,8 +758,7 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_64bits_hex) {
     XSRETURN(1);
 }
 
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_hex); /* prototype to pass -Wmissing-prototypes */
-XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_hex) {
+XS_INTERNAL(Digest_xxHash_xxxh3_128bits_hex) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "ctx");
@@ -928,87 +778,61 @@ XS_EUPXS(XS_Digest__xxHash__xxxh3_128bits_hex) {
     }
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-XS_EXTERNAL(boot_Digest__xxHash); /* prototype to pass -Wmissing-prototypes */
-XS_EXTERNAL(boot_Digest__xxHash) {
-#if PERL_VERSION_LE(5, 21, 5)
-    dXSARGS;
-#else
+void boot_Digest__xxHash(pTHX_ CV * cv) {
     dVAR;
     dXSBOOTARGSXSAPIVERCHK;
-#endif
-#if PERL_VERSION_LE(5, 8, 999) /* PERL_VERSION_LT is 5.33+ */
-    char * file = __FILE__;
-#else
-    const char * file = __FILE__;
-#endif
-
-    PERL_UNUSED_VAR(file);
 
     PERL_UNUSED_VAR(cv);    /* -W */
     PERL_UNUSED_VAR(items); /* -W */
-#if PERL_VERSION_LE(5, 21, 5)
-    XS_VERSION_BOOTCHECK;
-#ifdef XS_APIVERSION_BOOTCHECK
-    XS_APIVERSION_BOOTCHECK;
-#endif
-#endif
 
-    newXS_deffile("Digest::xxHash::xxhash32", XS_Digest__xxHash_xxhash32);
-    newXS_deffile("Digest::xxHash::xxhash64", XS_Digest__xxHash_xxhash64);
-    newXS_deffile("Digest::xxHash::xxh3_64", XS_Digest__xxHash_xxh3_64);
-    newXS_deffile("Digest::xxHash::xxhash32_hex", XS_Digest__xxHash_xxhash32_hex);
-    newXS_deffile("Digest::xxHash::xxhash64_hex", XS_Digest__xxHash_xxhash64_hex);
-    newXS_deffile("Digest::xxHash::xxh3_64_hex", XS_Digest__xxHash_xxh3_64_hex);
-    newXS_deffile("Digest::xxHash::xxh3_128", XS_Digest__xxHash_xxh3_128);
-    newXS_deffile("Digest::xxHash::xxh3_128_hex", XS_Digest__xxHash_xxh3_128_hex);
-    newXS_deffile("Digest::xxHash::xxh3_generate_secret_from_seed", XS_Digest__xxHash_xxh3_generate_secret_from_seed);
-    newXS_deffile("Digest::xxHash::_xxxh32_create", XS_Digest__xxHash__xxxh32_create);
-    newXS_deffile("Digest::xxHash::_xxxh32_free", XS_Digest__xxHash__xxxh32_free);
-    newXS_deffile("Digest::xxHash::_xxxh32_copy", XS_Digest__xxHash__xxxh32_copy);
-    newXS_deffile("Digest::xxHash::_xxxh32_reset", XS_Digest__xxHash__xxxh32_reset);
-    newXS_deffile("Digest::xxHash::_xxxh32_update", XS_Digest__xxHash__xxxh32_update);
-    newXS_deffile("Digest::xxHash::_xxxh32_digest", XS_Digest__xxHash__xxxh32_digest);
-    newXS_deffile("Digest::xxHash::_xxxh64_create", XS_Digest__xxHash__xxxh64_create);
-    newXS_deffile("Digest::xxHash::_xxxh64_free", XS_Digest__xxHash__xxxh64_free);
-    newXS_deffile("Digest::xxHash::_xxxh64_copy", XS_Digest__xxHash__xxxh64_copy);
-    newXS_deffile("Digest::xxHash::_xxxh64_reset", XS_Digest__xxHash__xxxh64_reset);
-    newXS_deffile("Digest::xxHash::_xxxh64_update", XS_Digest__xxHash__xxxh64_update);
-    newXS_deffile("Digest::xxHash::_xxxh64_digest", XS_Digest__xxHash__xxxh64_digest);
-    newXS_deffile("Digest::xxHash::_xxxh3_create", XS_Digest__xxHash__xxxh3_create);
-    newXS_deffile("Digest::xxHash::_xxxh3_free", XS_Digest__xxHash__xxxh3_free);
-    newXS_deffile("Digest::xxHash::_xxxh3_copy", XS_Digest__xxHash__xxxh3_copy);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_reset", XS_Digest__xxHash__xxxh3_64bits_reset);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_reset_withSeed", XS_Digest__xxHash__xxxh3_64bits_reset_withSeed);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_reset_withSecret", XS_Digest__xxHash__xxxh3_64bits_reset_withSecret);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_reset_withSecretandSeed",
-                  XS_Digest__xxHash__xxxh3_64bits_reset_withSecretandSeed);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_update", XS_Digest__xxHash__xxxh3_64bits_update);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_digest", XS_Digest__xxHash__xxxh3_64bits_digest);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_reset", XS_Digest__xxHash__xxxh3_128bits_reset);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_reset_withSeed", XS_Digest__xxHash__xxxh3_128bits_reset_withSeed);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_reset_withSecret", XS_Digest__xxHash__xxxh3_128bits_reset_withSecret);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_reset_withSecretandSeed",
-                  XS_Digest__xxHash__xxxh3_128bits_reset_withSecretandSeed);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_update", XS_Digest__xxHash__xxxh3_128bits_update);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_digest", XS_Digest__xxHash__xxxh3_128bits_digest);
-    newXS_deffile("Digest::xxHash::_xxxh32_hex", XS_Digest__xxHash__xxxh32_hex);
-    newXS_deffile("Digest::xxHash::_xxxh64_hex", XS_Digest__xxHash__xxxh64_hex);
-    newXS_deffile("Digest::xxHash::_xxxh3_64bits_hex", XS_Digest__xxHash__xxxh3_64bits_hex);
-    newXS_deffile("Digest::xxHash::_xxxh3_128bits_hex", XS_Digest__xxHash__xxxh3_128bits_hex);
-#if PERL_VERSION_LE(5, 21, 5)
-#if PERL_VERSION_GE(5, 9, 0)
-    if (PL_unitcheckav)
-        call_list(PL_scopestack_ix, PL_unitcheckav);
-#endif
-    XSRETURN_YES;
-#else
+    (void)newXSproto_portable("Digest::xxHash::xxhash32", Digest_xxHash_xxhash32, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxhash64", Digest_xxHash_xxhash64, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxh3_64", Digest_xxHash_xxh3_64, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxhash32_hex", Digest_xxHash_xxhash32_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxhash64_hex", Digest_xxHash_xxhash64_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxh3_64_hex", Digest_xxHash_xxh3_64_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxh3_128", Digest_xxHash_xxh3_128, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::xxh3_128_hex", Digest_xxHash_xxh3_128_hex, __FILE__);
+    (void)newXSproto_portable(
+        "Digest::xxHash::xxh3_generate_secret_from_seed", Digest_xxHash_xxh3_generate_secret_from_seed, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_create", Digest_xxHash_xxxh32_create, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_free", Digest_xxHash_xxxh32_free, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_copy", Digest_xxHash_xxxh32_copy, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_reset", Digest_xxHash_xxxh32_reset, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_update", Digest_xxHash_xxxh32_update, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_digest", Digest_xxHash_xxxh32_digest, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_create", Digest_xxHash_xxxh64_create, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_free", Digest_xxHash_xxxh64_free, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_copy", Digest_xxHash_xxxh64_copy, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_reset", Digest_xxHash_xxxh64_reset, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_update", Digest_xxHash_xxxh64_update, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_digest", Digest_xxHash_xxxh64_digest, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_create", Digest_xxHash_xxxh3_create, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_free", Digest_xxHash_xxxh3_free, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_copy", Digest_xxHash_xxxh3_copy, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_reset", Digest_xxHash_xxxh3_64bits_reset, __FILE__);
+    (void)newXSproto_portable(
+        "Digest::xxHash::_xxxh3_64bits_reset_withSeed", Digest_xxHash_xxxh3_64bits_reset_withSeed, __FILE__);
+    (void)newXSproto_portable(
+        "Digest::xxHash::_xxxh3_64bits_reset_withSecret", Digest_xxHash_xxxh3_64bits_reset_withSecret, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_reset_withSecretandSeed",
+                              Digest_xxHash_xxxh3_64bits_reset_withSecretandSeed,
+                              __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_update", Digest_xxHash_xxxh3_64bits_update, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_digest", Digest_xxHash_xxxh3_64bits_digest, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_reset", Digest_xxHash_xxxh3_128bits_reset, __FILE__);
+    (void)newXSproto_portable(
+        "Digest::xxHash::_xxxh3_128bits_reset_withSeed", Digest_xxHash_xxxh3_128bits_reset_withSeed, __FILE__);
+    (void)newXSproto_portable(
+        "Digest::xxHash::_xxxh3_128bits_reset_withSecret", Digest_xxHash_xxxh3_128bits_reset_withSecret, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_reset_withSecretandSeed",
+                              Digest_xxHash_xxxh3_128bits_reset_withSecretandSeed,
+                              __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_update", Digest_xxHash_xxxh3_128bits_update, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_digest", Digest_xxHash_xxxh3_128bits_digest, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh32_hex", Digest_xxHash_xxxh32_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh64_hex", Digest_xxHash_xxxh64_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_hex", Digest_xxHash_xxxh3_64bits_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_hex", Digest_xxHash_xxxh3_128bits_hex, __FILE__);
     Perl_xs_boot_epilog(aTHX_ ax);
-#endif
 }
-
-#ifdef __cplusplus
-}
-#endif
