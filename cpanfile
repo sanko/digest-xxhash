@@ -1,4 +1,3 @@
-requires 'Math::Int64', '0.53';
 requires 'perl',        '5.022';
 recommends 'Math::Int64', '0.53';
 recommends 'perl',        '5.022';

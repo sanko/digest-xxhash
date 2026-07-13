@@ -10,6 +10,7 @@ README.md
 SECURITY.md
 TODO
 cpanfile
+eg/benchmark.pl
 ext/perl_math_int64/perl_math_int64.c
 ext/perl_math_int64/perl_math_int64.h
 ext/xxHash/.gitattributes
