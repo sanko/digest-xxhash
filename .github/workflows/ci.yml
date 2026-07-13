@@ -156,21 +156,6 @@ jobs:
       setup: sudo pkgin -y install gdb || true
       test_files: '${{ needs.setup.outputs.test_files }}'
       version: 10.1
-  omnios:
-    if: "${{ needs.setup.outputs.runner == 'all' || contains(needs.setup.outputs.runner, 'omnios') }}"
-    name: OmniOS
-    needs:
-      - setup
-    uses: ./.github/workflows/cross.yml
-    with:
-      arch: x86-64
-      gcc_pkg: sudo pkg install developer/gcc --accept || sudo pkg install developer/gcc11 --accept || sudo pkg install gcc --accept || sudo pkg install developer/gcc49 --accept || true
-      host: ubuntu-latest
-      os: omnios
-      perl: 5.42
-      pkg: 'sudo pkg install perl || [ $? -eq 4 ]'
-      test_files: '${{ needs.setup.outputs.test_files }}'
-      version: r151058
   openbsd-arm64:
     if: "${{ needs.setup.outputs.runner == 'all' || contains(needs.setup.outputs.runner, 'openbsd-arm64') }}"
     name: OpenBSD
@@ -246,7 +231,6 @@ jobs:
       - midnightbsd
       - netbsd-x64
       - netbsd-arm64
-      - omnios
       - openbsd-x64
       - openbsd-arm64
     runs-on: ubuntu-latest
@@ -282,7 +266,6 @@ jobs:
             "MidnightBSD:Intel"
             "NetBSD:Intel"
             "NetBSD:ARM"
-            "OmniOS:Intel"
             "OpenBSD:Intel"
             "OpenBSD:ARM"
           )
@@ -304,7 +287,6 @@ jobs:
               *"midnightbsd"*)       echo "MidnightBSD:Intel" ;;
               *"netbsd"*"arm64"*)    echo "NetBSD:ARM" ;;
               *"netbsd"*)            echo "NetBSD:Intel" ;;
-              *"omnios"*)            echo "OmniOS:Intel" ;;
               *"openbsd"*"arm64"*)   echo "OpenBSD:ARM" ;;
               *"openbsd"*)           echo "OpenBSD:Intel" ;;
             esac
@@ -386,7 +368,7 @@ jobs:
             [ "$os_input" = "all" ] && [ "$arch_input" = "all" ] && { echo "all"; return; }
             local -a selected_oses
             if [ "$os_input" = "all" ]; then
-              selected_oses=(linux macos windows freebsd openbsd netbsd dragonflybsd haiku midnightbsd omnios)
+              selected_oses=(linux macos windows freebsd openbsd netbsd dragonflybsd haiku midnightbsd)
             else
               IFS=',' read -ra selected_oses <<< "$os_input"
             fi
@@ -416,7 +398,6 @@ jobs:
                       dragonflybsd|dragonfly) result="$result dragonflybsd" ;;
                       haiku)       result="$result haiku" ;;
                       midnightbsd) result="$result midnightbsd" ;;
-                      omnios)      result="$result omnios" ;;
                     esac ;;
                   arm)
                     case "$os" in
