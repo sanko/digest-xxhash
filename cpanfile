@@ -1,5 +1,7 @@
 requires 'Math::Int64', '0.53';
 requires 'perl',        '5.022';
+recommends 'Math::Int64', '0.53';
+recommends 'perl',        '5.022';
 on configure => sub {
     requires 'Module::Build::Tiny', '0.034';
     requires 'perl',                'v5.40.0';
@@ -9,7 +11,7 @@ on build => sub {
     requires 'Module::Build';
 };
 on test => sub {
-    requires 'Test::More', '0.98';
+    requires 'Test2::V0';
 };
 on develop => sub {
     requires 'Data::Dump';

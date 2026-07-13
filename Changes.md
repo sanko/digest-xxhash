@@ -2,8 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
@@ -49,8 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Full support for 64-bit hashes on 32-bit perls built without int64 (basically
-  just DWIM Perl)
+- Full support for 64-bit hashes on 32-bit perls built without int64 (basically just DWIM Perl)
 
 ## [2.00] - 2015-11-04
 
@@ -92,3 +90,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release
+
+[Unreleased]: https://github.com/sanko/digest-xxhash/compare/2.04...HEAD
+[2.04]: https://github.com/sanko/digest-xxhash/compare/2.03...2.04
+[2.03]: https://github.com/sanko/digest-xxhash/compare/2.02...2.03
+[2.02]: https://github.com/sanko/digest-xxhash/compare/2.01...2.02
+[2.01]: https://github.com/sanko/digest-xxhash/compare/2.00...2.01
+[2.00]: https://github.com/sanko/digest-xxhash/compare/1.02...2.00
+[1.02]: https://github.com/sanko/digest-xxhash/compare/1.01...1.02
+[1.01]: https://github.com/sanko/digest-xxhash/compare/1.00...1.01
+[1.00]: https://github.com/sanko/digest-xxhash/compare/0.99...1.00
+[0.99]: https://github.com/sanko/digest-xxhash/releases/tag/0.99

@@ -362,7 +362,7 @@ License-wise, I don't actually care about the wrapper I've written.
 
 =head1 AUTHOR
 
-Sanko Robinson <https://github.com/sanko>
+Sanko Robinson L<https://github.com/sanko>
 
 xxHash by Yann Collet.
 

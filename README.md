@@ -177,6 +177,6 @@ License-wise, I don't actually care about the wrapper I've written.
 
 # AUTHOR
 
-Sanko Robinson &lt;https://github.com/sanko>
+Sanko Robinson [https://github.com/sanko](https://github.com/sanko)
 
 xxHash by Yann Collet.
