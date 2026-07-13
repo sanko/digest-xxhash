@@ -1,23 +1,23 @@
 {
 "Linux:Intel": "success"
 ,
-"Linux:ARM": "failure"
+"Linux:ARM": "success"
 ,
-"Linux:RISC-V": "failure"
+"Linux:RISC-V": "success"
 ,
 "macOS:Intel": "success"
 ,
-"macOS:Apple Silicon": "failure"
+"macOS:Apple Silicon": "success"
 ,
 "Windows:Intel": "success"
 ,
 "Windows:ARM": "success"
 ,
-"DragonFly_BSD:Intel": "success"
+"DragonFly_BSD:Intel": "failure"
 ,
 "FreeBSD:Intel": "success"
 ,
-"FreeBSD:ARM": "failure"
+"FreeBSD:ARM": "success"
 ,
 "Haiku:Intel": "success"
 ,
@@ -25,7 +25,7 @@
 ,
 "NetBSD:Intel": "success"
 ,
-"NetBSD:ARM": "failure"
+"NetBSD:ARM": "success"
 ,
 "OmniOS:Intel": "failure"
 ,
