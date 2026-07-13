@@ -25,8 +25,8 @@ jobs:
           sudo apt-get install -y gcc g++ make
           cpanm --notest Module::Build
           cpanm --installdeps --notest .
-          cpanm --notest File::Which IPC::Run ExtUtils::CBuilder
-          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash || true
+          cpanm --notest File::Which Math::Int64 IPC::Run ExtUtils::CBuilder
+          cpanm --verbose --notest Crypt::xxHash Digest::CRC Digest::JHash || true
       - name: Build
         run: |
           source ~/perl5/perlbrew/etc/bashrc
@@ -75,8 +75,8 @@ jobs:
           cpanm --notest Module::Build
           cpanm --installdeps --notest .
           # Optional comparators
-          cpanm --notest File::Which IPC::Run ExtUtils::CBuilder
-          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash || true
+          cpanm --notest File::Which Math::Int64 IPC::Run ExtUtils::CBuilder
+          cpanm --verbose --notest Crypt::xxHash Digest::CRC Digest::JHash || true
       - name: Build
         run: |
           source ~/perl5/perlbrew/etc/bashrc
@@ -115,8 +115,8 @@ jobs:
         run: |
           cpanm --notest Module::Build
           cpanm --installdeps --notest .
-          cpanm --notest File::Which IPC::Run ExtUtils::CBuilder
-          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash || true
+          cpanm --notest File::Which Math::Int64 IPC::Run ExtUtils::CBuilder
+          cpanm --verbose --notest Crypt::xxHash Digest::CRC Digest::JHash || true
       - name: Build
         run: "perl Build.PL\n./Build\n"
       - name: Run benchmark
@@ -150,8 +150,8 @@ jobs:
         run: |
           cpanm --notest Module::Build
           cpanm --installdeps --notest .
-          cpanm --notest File::Which IPC::Run ExtUtils::CBuilder
-          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash || true
+          cpanm --notest File::Which Math::Int64 IPC::Run ExtUtils::CBuilder
+          cpanm --verbose --notest Crypt::xxHash Digest::CRC Digest::JHash || true
       - name: Build
         run: "perl Build.PL\n./Build\n"
       - name: Run benchmark
@@ -264,8 +264,8 @@ jobs:
         run: |
           cpanm --notest Module::Build
           cpanm --installdeps --notest .
-          cpanm --notest File::Which IPC::Run ExtUtils::CBuilder
-          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>$null
+          cpanm --notest File::Which Math::Int64 IPC::Run ExtUtils::CBuilder
+          cpanm --verbose --notest Crypt::xxHash Digest::CRC Digest::JHash 2>$null
       - name: Build
         run: "perl Build.PL\nperl Build\n"
       - name: Run benchmark
