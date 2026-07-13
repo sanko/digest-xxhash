@@ -17,7 +17,7 @@ for my $mod (qw[Digest::CRC Digest::JHash Crypt::xxHash]) {
     try {
         $HAVE{$mod} = builtin::load_module $mod
     }
-    catch ($e) { }
+    catch ($e) { say 'Error loading ' . $mod; say $e; }
 }
 use Digest::MD5 ();
 use Digest::SHA ();
