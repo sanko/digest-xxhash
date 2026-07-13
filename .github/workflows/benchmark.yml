@@ -1,0 +1,310 @@
+---
+jobs:
+  linux-arm64:
+    if: "${{ needs.setup.outputs.platforms == 'all' || contains(needs.setup.outputs.platforms, 'linux-arm64') }}"
+    name: Linux ARM
+    needs: setup
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - name: Install Perl via perlbrew
+        run: |
+          \curl -L https://install.perlbrew.pl | bash
+          source ~/perl5/perlbrew/etc/bashrc
+          perlbrew install --notest --noman -j $(nproc) perl-5.42.0
+          perlbrew switch perl-5.42.0
+          perlbrew install-cpanm
+          cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+          echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc
+      - name: Install dependencies
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          sudo apt-get update -y
+          sudo apt-get install -y gcc g++ make
+          cpanm --notest Module::Build
+          cpanm --installdeps --notest .
+          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>/dev/null || true
+      - name: Build
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          perl Build.PL
+          ./Build
+      - name: Run benchmark
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          perl eg/benchmark.pl 2>&1 | tee benchmark-output.txt
+      - if: always()
+        name: Write summary
+        run: |
+          echo "## Linux ARM (aarch64) Benchmark" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat benchmark-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: benchmark-linux-arm64
+          path: benchmark-output.txt
+          retention-days: 90
+  linux-x64:
+    if: "${{ needs.setup.outputs.platforms == 'all' || contains(needs.setup.outputs.platforms, 'linux-x64') }}"
+    name: Linux Intel
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - name: Install Perl via perlbrew
+        run: |
+          \curl -L https://install.perlbrew.pl | bash
+          source ~/perl5/perlbrew/etc/bashrc
+          perlbrew install --notest --noman -j $(nproc) perl-5.42.0
+          perlbrew switch perl-5.42.0
+          perlbrew install-cpanm
+          cpanm --local-lib=~/perl5 local::lib && eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+          echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc
+      - name: Install dependencies
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          sudo apt-get update -y
+          sudo apt-get install -y gcc g++ make
+          cpanm --notest Module::Build
+          cpanm --installdeps --notest .
+          # Optional comparators
+          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>/dev/null || true
+      - name: Build
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          perl Build.PL
+          ./Build
+      - name: Run benchmark
+        run: |
+          source ~/perl5/perlbrew/etc/bashrc
+          perl eg/benchmark.pl 2>&1 | tee benchmark-output.txt
+      - if: always()
+        name: Write summary
+        run: |
+          echo "## Linux Intel (x64) Benchmark" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat benchmark-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: benchmark-linux-x64
+          path: benchmark-output.txt
+          retention-days: 90
+  macos-arm:
+    if: "${{ needs.setup.outputs.platforms == 'all' || contains(needs.setup.outputs.platforms, 'macos-arm') }}"
+    name: macOS ARM
+    needs: setup
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - uses: shogo82148/actions-setup-perl@v1.37.1
+        with:
+          perl-version: 5.42
+      - name: Install dependencies
+        run: |
+          cpanm --notest Module::Build
+          cpanm --installdeps --notest .
+          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>/dev/null || true
+      - name: Build
+        run: "perl Build.PL\n./Build\n"
+      - name: Run benchmark
+        run: perl eg/benchmark.pl 2>&1 | tee benchmark-output.txt
+      - if: always()
+        name: Write summary
+        run: |
+          echo "## macOS Apple Silicon (ARM64) Benchmark" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat benchmark-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: benchmark-macos-arm
+          path: benchmark-output.txt
+          retention-days: 90
+  macos-intel:
+    if: "${{ needs.setup.outputs.platforms == 'all' || contains(needs.setup.outputs.platforms, 'macos-intel') }}"
+    name: macOS Intel
+    needs: setup
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - uses: shogo82148/actions-setup-perl@v1.37.1
+        with:
+          perl-version: 5.42
+      - name: Install dependencies
+        run: |
+          cpanm --notest Module::Build
+          cpanm --installdeps --notest .
+          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>/dev/null || true
+      - name: Build
+        run: "perl Build.PL\n./Build\n"
+      - name: Run benchmark
+        run: perl eg/benchmark.pl 2>&1 | tee benchmark-output.txt
+      - if: always()
+        name: Write summary
+        run: |
+          echo "## macOS Intel (x64) Benchmark" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat benchmark-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: benchmark-macos-intel
+          path: benchmark-output.txt
+          retention-days: 90
+  results:
+    if: always()
+    name: Benchmark Summary
+    needs:
+      - setup
+      - linux-x64
+      - linux-arm64
+      - macos-arm
+      - macos-intel
+      - win32-x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: benchmarks
+      - name: Generate comparison summary
+        run: |
+          echo "# Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Generated from \`${{ github.sha }}\` on $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          for dir in benchmarks/*/; do
+            name=$(basename "$dir" | sed 's/^benchmark-//')
+            file="$dir/benchmark-output.txt"
+            if [ -f "$file" ]; then
+              echo "## $name" >> $GITHUB_STEP_SUMMARY
+              echo '<details><summary>Full output</summary>' >> $GITHUB_STEP_SUMMARY
+              echo '' >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat "$file" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo '</details>' >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+  setup:
+    name: Filter Platforms
+    outputs:
+      platforms: '${{ steps.filter.outputs.platforms }}'
+    runs-on: ubuntu-latest
+    steps:
+      - id: filter
+        name: Determine which platforms to run
+        run: |
+          MSG="${{ github.event.head_commit.message || '' }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RAW_OS="${{ inputs.os }}"
+            RAW_ARCH="${{ inputs.arch }}"
+          else
+            RAW_OS=$(echo "$MSG" | grep -oP '\[bench:os:\K[^\]]+' || echo "all")
+            RAW_ARCH=$(echo "$MSG" | grep -oP '\[bench:arch:\K[^\]]+' || echo "all")
+          fi
+          
+          # Expand
+          if [ "$RAW_OS" = "all" ] && [ "$RAW_ARCH" = "all" ]; then
+            echo "platforms=all" >> "$GITHUB_OUTPUT"
+          else
+            RESULT=""
+            IFS=',' read -ra OSES <<< "${RAW_OS:-all}"
+            IFS=',' read -ra ARCHS <<< "${RAW_ARCH:-all}"
+            for os in "${OSES[@]}"; do
+              os=$(echo "$os" | tr -d ' ')
+              for arch in "${ARCHS[@]}"; do
+                arch=$(echo "$arch" | tr -d ' ')
+                case "$os" in
+                  linux)   [ "$arch" = "x64" ]  && RESULT="$RESULT linux-x64"
+                           [ "$arch" = "arm" ] && RESULT="$RESULT linux-arm64" ;;
+                  macos)   [ "$arch" = "x64" ]  && RESULT="$RESULT macos-intel"
+                           [ "$arch" = "arm" ] && RESULT="$RESULT macos-arm" ;;
+                  windows) [ "$arch" = "x64" ]  && RESULT="$RESULT win32-x64" ;;
+                  all)     RESULT="all" ;;
+                esac
+              done
+            done
+            echo "platforms=${RESULT:-all}" >> "$GITHUB_OUTPUT"
+          fi
+  win32-x64:
+    if: "${{ needs.setup.outputs.platforms == 'all' || contains(needs.setup.outputs.platforms, 'win32-x64') }}"
+    name: Windows Intel
+    needs: setup
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - uses: shogo82148/actions-setup-perl@v1.37.1
+        with:
+          distribution: strawberry
+          perl-version: 5.42
+      - name: Install dependencies
+        run: |
+          cpanm --notest Module::Build
+          cpanm --installdeps --notest .
+          cpanm --notest Crypt::xxHash Digest::CRC Digest::JHash 2>$null
+      - name: Build
+        run: "perl Build.PL\nperl Build\n"
+      - name: Run benchmark
+        run: perl eg\benchmark.pl 2>&1 | Tee-Object benchmark-output.txt
+      - if: always()
+        name: Write summary
+        run: |
+          "## Windows Intel (x64) Benchmark" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          '```' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          Get-Content benchmark-output.txt | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          '```' | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+      - if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: benchmark-win32-x64
+          path: benchmark-output.txt
+          retention-days: 90
+name: Benchmark
+on:
+  pull_request:
+    paths:
+      - xxHash.xs
+      - lib/Digest/xxHash.pm
+      - Build.PL
+      - ext/xxHash/**
+      - eg/benchmark.pl
+  push:
+    branches:
+      - main
+    paths:
+      - xxHash.xs
+      - lib/Digest/xxHash.pm
+      - Build.PL
+      - ext/xxHash/**
+      - eg/benchmark.pl
+  schedule:
+    - cron: 17 6 * * 0
+  workflow_dispatch:
+    inputs:
+      arch:
+        default: all
+        description: 'Architecture(s) (comma-separated: x64,arm or "all")'
+        type: string
+      os:
+        default: all
+        description: 'OS(es) to benchmark (comma-separated: linux,macos,windows or "all")'
+        type: string
