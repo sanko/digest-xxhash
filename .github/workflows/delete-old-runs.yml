@@ -1,0 +1,109 @@
+---
+jobs:
+  delete-old-runs:
+    name: Clean up old workflow runs
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          DRY_RUN: '${{ inputs.dry-run }}'
+          KEEP_LATEST: '${{ inputs.keep-latest }}'
+          LIMIT: '${{ inputs.limit }}'
+          TARGET_BRANCH: '${{ inputs.branch }}'
+          TARGET_DAYS: '${{ inputs.days }}'
+          TARGET_STATUS: '${{ inputs.status }}'
+          TARGET_WORKFLOW: '${{ inputs.workflow }}'
+        id: list
+        name: List old runs to delete
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const workflow  = process.env.TARGET_WORKFLOW || '';
+            const days      = parseInt(process.env.TARGET_DAYS, 10) || 30;
+            const branch    = process.env.TARGET_BRANCH || '';
+            const status    = process.env.TARGET_STATUS || '';
+            const keepLatest = parseInt(process.env.KEEP_LATEST, 10) || 0;
+            const limit     = parseInt(process.env.LIMIT, 10) || 0;
+            const dryRun    = process.env.DRY_RUN === 'true';
+            
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - days);
+            
+            const opts = {};
+            if (workflow)  opts.workflow = workflow;
+            if (branch)    opts.branch = branch;
+            if (status)    opts.status = status;
+            if (limit)     opts.per_page = Math.min(limit, 100);
+            
+            const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+              ...opts,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            let toDelete = runs.workflow_runs
+              .filter(r => new Date(r.created_at) < cutoff)
+              .map(r => ({ id: r.id, created: r.created_at, workflow: r.name, conclusion: r.conclusion, html_url: r.html_url }));
+            
+            if (keepLatest > 0) {
+              toDelete = toDelete.slice(keepLatest);
+            }
+            
+            core.setOutput('dry-run', String(dryRun));
+            core.setOutput('count', String(toDelete.length));
+            core.setOutput('runs', JSON.stringify(toDelete));
+            
+            if (toDelete.length === 0) {
+              core.notice('No old workflow runs to delete.');
+              return;
+            }
+            
+            core.info(`Found ${toDelete.length} run(s) older than ${days} day(s) to delete.`);
+            for (const r of toDelete) {
+              core.info(`  #${r.id}  ${r.created}  ${r.workflow}  ${r.conclusion || 'pending'}`);
+              if (!dryRun) {
+                await github.rest.actions.deleteWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: r.id,
+                });
+              }
+            }
+            core.info(dryRun ? 'DRY RUN! Nothing was actually deleted.' : `Deleted ${toDelete.length} run(s).`);
+name: Delete Old Workflow Runs
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Only delete runs on this branch (empty = all branches)
+        required: false
+        type: string
+      days:
+        default: 30
+        description: Delete runs older than this many days
+        required: false
+        type: number
+      dry-run:
+        default: false
+        description: Set to false to actually delete
+        required: false
+        type: boolean
+      keep-latest:
+        default: 0
+        description: Keep this many of the most recent runs (even if old)
+        required: false
+        type: number
+      limit:
+        default: 0
+        description: 'Max number of runs to list (0 = no limit, max 100 per API page)'
+        required: false
+        type: number
+      status:
+        description: 'Only delete runs with this status (e.g. completed, success, failure, cancelled)'
+        required: false
+        type: string
+      workflow:
+        description: Workflow filename or name to target (empty = all)
+        required: false
+        type: string

@@ -1,0 +1,106 @@
+---
+jobs:
+  build:
+    name: "${{ inputs.arch == 'x86-64' && 'Intel' || 'ARM' }}"
+    runs-on: '${{ inputs.host }}'
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          submodules: true
+      - env:
+          AUTHOR_TESTING: 0
+          AUTOMATED_TESTING: 1
+        name: 'Boot ${{ inputs.os }} VM'
+        uses: cross-platform-actions/action@v1.3.0
+        with:
+          architecture: '${{ inputs.arch }}'
+          cpu_count: 4
+          environment_variables: AUTHOR_TESTING AUTOMATED_TESTING
+          memory: 5G
+          operating_system: '${{ inputs.os }}'
+          version: '${{ inputs.version }}'
+      - name: 'Test on ${{ inputs.os }}'
+        run: |
+          uname -a
+          echo $SHELL
+          pwd
+          ls -lah
+          whoami
+          env | sort
+          ${{ inputs.setup }}
+          ${{ inputs.pkg }}
+          perl -v
+          ${{ inputs.gcc_pkg }}
+          curl -L https://cpanmin.us | LC_ALL=C sudo perl - --notest App::cpanminus Module::Build::Tiny
+          # Add perl's site bin to PATH (needed on e.g. OmniOS where cpanm installs outside default PATH)
+          export PATH="$PATH:$(perl -MConfig -e 'print $Config{installsitebin}' 2>/dev/null):$(perl -MConfig -e 'print $Config{installscript}' 2>/dev/null)"
+          sudo env PATH="$PATH" LC_ALL=C cpanm --installdeps --notest .
+          ${{ inputs.diag }}
+          if [ -n "${{ inputs.test_files }}" ]; then
+            perl Build.PL
+            ./Build
+            sudo env PATH="$PATH" LC_ALL=C prove -Ilib -lv ${{ inputs.test_files }}
+          else
+            sudo env PATH="$PATH" LC_ALL=C cpanm --test-only -v .
+          fi
+          command1_exit_code=$?
+          if [ $command1_exit_code -eq 0 ]; then
+            LC_ALL=C sudo perl -V > test-output-${{ inputs.os }}-${{ inputs.version }}-perl${{ inputs.perl }}.${{inputs.perl_subversion}}-${{ inputs.arch }}.txt
+            command2_exit_code=$?
+          else
+            echo "Error!" > test-output-${{ inputs.os }}-${{ inputs.version }}-perl${{ inputs.perl }}.${{inputs.perl_subversion}}-${{ inputs.arch }}.txt
+            sudo chown -R $(id -un) . 2>/dev/null || true
+            exit $command1_exit_code
+          fi
+          sudo chown -R $(id -un) . 2>/dev/null || true
+        shell: 'cpa.sh {0}'
+      - continue-on-error: true
+        if: always()
+        name: Upload results as artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          if-no-files-found: warn
+          name: 'test-output-${{ inputs.os }}-${{ inputs.version }}-perl${{ inputs.perl }}.${{inputs.perl_subversion}}-${{ inputs.arch }}'
+          path: 'test-output-${{ inputs.os }}-${{ inputs.version }}-perl${{ inputs.perl }}.${{inputs.perl_subversion}}-${{ inputs.arch }}.txt'
+name: bsd module
+on:
+  workflow_call:
+    inputs:
+      arch:
+        required: true
+        type: string
+      diag:
+        default: ''
+        required: false
+        type: string
+      gcc_pkg:
+        default: ''
+        required: false
+        type: string
+      host:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+      perl:
+        required: true
+        type: string
+      perl_subversion:
+        default: 2
+        required: false
+        type: string
+      pkg:
+        required: true
+        type: string
+      setup:
+        default: ''
+        required: false
+        type: string
+      test_files:
+        default: ''
+        required: false
+        type: string
+      version:
+        required: true
+        type: string
