@@ -27,8 +27,6 @@
 ,
 "NetBSD:ARM": "success"
 ,
-"OmniOS:Intel": "failure"
-,
 "OpenBSD:Intel": "success"
 ,
 "OpenBSD:ARM": "success"

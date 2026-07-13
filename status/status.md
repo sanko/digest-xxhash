@@ -15,6 +15,5 @@
 | MidnightBSD | Intel | ✅ |
 | NetBSD | Intel | ✅ |
 | NetBSD | ARM | ✅ |
-| OmniOS | Intel | ❌ |
 | OpenBSD | Intel | ✅ |
 | OpenBSD | ARM | ✅ |
