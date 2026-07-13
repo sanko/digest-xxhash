@@ -9,6 +9,7 @@
 #include <XSUB.h>
 
 #include <inttypes.h>
+#include <string.h>
 
 #ifdef __MINGW32__
 #include <stdint.h>
@@ -26,6 +27,11 @@ typedef unsigned __int64 uint64_t;
 
 #define XXH_STATIC_LINKING_ONLY
 #include "xxhash.h"
+
+#define XXH_TYPE_XXH32 0
+#define XXH_TYPE_XXH64 1
+#define XXH_TYPE_XXH3_64 2
+#define XXH_TYPE_XXH3_128 3
 
 static const char hex_chars[16] = "0123456789abcdef";
 
@@ -93,14 +99,11 @@ STATIC void S_croak_xs_usage(const CV * const cv, const char * const params);
 
 STATIC void S_croak_xs_usage(const CV * const cv, const char * const params) {
     const GV * const gv = CvGV(cv);
-
     PERL_ARGS_ASSERT_CROAK_XS_USAGE;
-
     if (gv) {
         const char * const gvname = GvNAME(gv);
         const HV * const stash = GvSTASH(gv);
         const char * const hvname = stash ? HvNAME(stash) : NULL;
-
         if (hvname)
             Perl_croak_nocontext("Usage: %s::%s(%s)", hvname, gvname, params);
         else
@@ -112,7 +115,6 @@ STATIC void S_croak_xs_usage(const CV * const cv, const char * const params) {
 }
 #undef PERL_ARGS_ASSERT_CROAK_XS_USAGE
 #define croak_xs_usage S_croak_xs_usage
-
 #endif
 
 #ifdef newXS_flags
@@ -126,14 +128,11 @@ XS_INTERNAL(Digest_xxHash_xxhash32) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        UV RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        RETVAL = (UV)XXH32(input, STRLEN_length_of_input, seed);
-        TARGu((UV)RETVAL, 1);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        TARGu((UV)XXH32(input, len, seed), 1);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -144,14 +143,11 @@ XS_INTERNAL(Digest_xxHash_xxhash64) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        UV RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        RETVAL = (UV)XXH64(input, STRLEN_length_of_input, seed);
-        TARGu((UV)RETVAL, 1);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        TARGu((UV)XXH64(input, len, seed), 1);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -162,14 +158,11 @@ XS_INTERNAL(Digest_xxHash_xxh3_64) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        UV RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        RETVAL = (UV)XXH3_64bits_withSeed(input, STRLEN_length_of_input, seed);
-        TARGu((UV)RETVAL, 1);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        TARGu((UV)XXH3_64bits_withSeed(input, len, seed), 1);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -180,16 +173,15 @@ XS_INTERNAL(Digest_xxHash_xxhash32_hex) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        char * RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        static char hexbuf[9];
-        write_hex32(hexbuf, (uint32_t)XXH32(input, STRLEN_length_of_input, seed));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        char * buf;
+        sv_setpvn(TARG, "", 0);
+        buf = SvGROW(TARG, 9);
+        write_hex32(buf, (uint32_t)XXH32(input, len, seed));
+        SvCUR_set(TARG, 8);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -200,16 +192,15 @@ XS_INTERNAL(Digest_xxHash_xxhash64_hex) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        char * RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        static char hexbuf[17];
-        write_hex64(hexbuf, (uint64_t)XXH64(input, STRLEN_length_of_input, seed));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        char * buf;
+        sv_setpvn(TARG, "", 0);
+        buf = SvGROW(TARG, 17);
+        write_hex64(buf, (uint64_t)XXH64(input, len, seed));
+        SvCUR_set(TARG, 16);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -220,16 +211,15 @@ XS_INTERNAL(Digest_xxHash_xxh3_64_hex) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        char * RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        static char hexbuf[17];
-        write_hex64(hexbuf, (uint64_t)XXH3_64bits_withSeed(input, STRLEN_length_of_input, seed));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        char * buf;
+        sv_setpvn(TARG, "", 0);
+        buf = SvGROW(TARG, 17);
+        write_hex64(buf, (uint64_t)XXH3_64bits_withSeed(input, len, seed));
+        SvCUR_set(TARG, 16);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -239,18 +229,15 @@ XS_INTERNAL(Digest_xxHash_xxh3_128) {
     dXSARGS;
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
-    PERL_UNUSED_VAR(ax); /* -Wall */
+    PERL_UNUSED_VAR(ax);
     SP -= items;
     {
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        {
-            XXH128_hash_t h = XXH3_128bits_withSeed(input, STRLEN_length_of_input, seed);
-            XPUSHs(sv_2mortal(newSVu64(h.low64)));
-            XPUSHs(sv_2mortal(newSVu64(h.high64)));
-        }
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        XXH128_hash_t h = XXH3_128bits_withSeed(input, len, seed);
+        XPUSHs(sv_2mortal(newSVu64(h.low64)));
+        XPUSHs(sv_2mortal(newSVu64(h.high64)));
         PUTBACK;
         return;
     }
@@ -261,18 +248,17 @@ XS_INTERNAL(Digest_xxHash_xxh3_128_hex) {
     if (items != 2)
         croak_xs_usage(cv, "input, seed");
     {
-        char * RETVAL;
         dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        const char * input = (const char *)SvPV(ST(0), STRLEN_length_of_input);
-        UV seed = (UV)SvUV(ST(1));
-
-        static char hexbuf[33];
-        XXH128_hash_t h = XXH3_128bits_withSeed(input, STRLEN_length_of_input, seed);
-        write_hex64(hexbuf, (uint64_t)h.high64);
-        write_hex64(hexbuf + 16, (uint64_t)h.low64);
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
+        STRLEN len;
+        const char * input = SvPV(ST(0), len);
+        UV seed = SvUV(ST(1));
+        XXH128_hash_t h = XXH3_128bits_withSeed(input, len, seed);
+        char * buf;
+        sv_setpvn(TARG, "", 0);
+        buf = SvGROW(TARG, 33);
+        write_hex64(buf, (uint64_t)h.high64);
+        write_hex64(buf + 16, (uint64_t)h.low64);
+        SvCUR_set(TARG, 32);
         ST(0) = TARG;
     }
     XSRETURN(1);
@@ -282,508 +268,215 @@ XS_INTERNAL(Digest_xxHash_xxh3_generate_secret_from_seed) {
     dXSARGS;
     if (items != 1)
         croak_xs_usage(cv, "seed");
-    PERL_UNUSED_VAR(ax); /* -Wall */
+    PERL_UNUSED_VAR(ax);
     SP -= items;
     {
-        UV seed = (UV)SvUV(ST(0));
-        {
-            unsigned char secret[XXH3_SECRET_DEFAULT_SIZE];
-            XXH3_generateSecret_fromSeed(secret, seed);
-            XPUSHs(sv_2mortal(newSVpvn((const char *)secret, XXH3_SECRET_DEFAULT_SIZE)));
-        }
+        UV seed = SvUV(ST(0));
+        unsigned char secret[XXH3_SECRET_DEFAULT_SIZE];
+        XXH3_generateSecret_fromSeed(secret, seed);
+        XPUSHs(sv_2mortal(newSVpvn((const char *)secret, XXH3_SECRET_DEFAULT_SIZE)));
         PUTBACK;
         return;
     }
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh32_create) {
+/* ========================================================================
+ * CONSOLIDATED INTERNAL API — no argument checks, type-dispatched in C
+ * ======================================================================== */
+
+XS_INTERNAL(Digest_xxHash_xxxh_create) {
     dXSARGS;
-    if (items != 0)
-        croak_xs_usage(cv, "");
-    {
-        IV RETVAL;
-        dXSTARG;
-        RETVAL = PTR2IV(XXH32_createState());
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
+    dXSTARG;
+    UV type_code = SvUV(ST(0));
+    IV ctx;
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
+        ctx = PTR2IV(XXH32_createState());
+        break;
+    case XXH_TYPE_XXH64:
+        ctx = PTR2IV(XXH64_createState());
+        break;
+    default:
+        ctx = PTR2IV(XXH3_createState());
+        break;
     }
+    TARGi(ctx, 1);
+    ST(0) = TARG;
     XSRETURN(1);
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh32_free) {
+XS_INTERNAL(Digest_xxHash_xxxh_free) {
     dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        IV ctx = (IV)SvIV(ST(0));
+    IV ctx = SvIV(ST(0));
+    UV type_code = SvUV(ST(1));
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
         XXH32_freeState(INT2PTR(XXH32_state_t *, ctx));
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh32_copy) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "dst, src");
-    {
-        IV dst = (IV)SvIV(ST(0));
-        IV src = (IV)SvIV(ST(1));
-        XXH32_copyState(INT2PTR(XXH32_state_t *, dst), INT2PTR(const XXH32_state_t *, src));
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh32_reset) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, seed");
-    {
-        int RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        UV seed = (UV)SvUV(ST(1));
-        RETVAL = XXH32_reset(INT2PTR(XXH32_state_t *, ctx), (XXH32_hash_t)seed);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh32_update) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, input");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * input = (const char *)SvPV(ST(1), STRLEN_length_of_input);
-
-        RETVAL = XXH32_update(INT2PTR(XXH32_state_t *, ctx), input, STRLEN_length_of_input);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh32_digest) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        U32 RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        RETVAL = XXH32_digest(INT2PTR(const XXH32_state_t *, ctx));
-        TARGu((UV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_create) {
-    dXSARGS;
-    if (items != 0)
-        croak_xs_usage(cv, "");
-    {
-        IV RETVAL;
-        dXSTARG;
-        RETVAL = PTR2IV(XXH64_createState());
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_free) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        IV ctx = (IV)SvIV(ST(0));
+        break;
+    case XXH_TYPE_XXH64:
         XXH64_freeState(INT2PTR(XXH64_state_t *, ctx));
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_copy) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "dst, src");
-    {
-        IV dst = (IV)SvIV(ST(0));
-        IV src = (IV)SvIV(ST(1));
-        XXH64_copyState(INT2PTR(XXH64_state_t *, dst), INT2PTR(const XXH64_state_t *, src));
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_reset) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, seed");
-    {
-        int RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        UV seed = (UV)SvUV(ST(1));
-        RETVAL = XXH64_reset(INT2PTR(XXH64_state_t *, ctx), seed);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_update) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, input");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * input = (const char *)SvPV(ST(1), STRLEN_length_of_input);
-
-        RETVAL = XXH64_update(INT2PTR(XXH64_state_t *, ctx), input, STRLEN_length_of_input);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh64_digest) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        uint64_t RETVAL;
-        IV ctx = (IV)SvIV(ST(0));
-#if !MATH_INT64_NATIVE
-        PERL_MATH_INT64_LOAD;
-#endif
-        RETVAL = XXH64_digest(INT2PTR(const XXH64_state_t *, ctx));
-        {
-            SV * RETVALSV;
-            RETVALSV = newSVu64(RETVAL);
-            RETVALSV = sv_2mortal(RETVALSV);
-            ST(0) = RETVALSV;
-        }
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_create) {
-    dXSARGS;
-    if (items != 0)
-        croak_xs_usage(cv, "");
-    {
-        IV RETVAL;
-        dXSTARG;
-        RETVAL = PTR2IV(XXH3_createState());
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_free) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        IV ctx = (IV)SvIV(ST(0));
+        break;
+    default:
         XXH3_freeState(INT2PTR(XXH3_state_t *, ctx));
+        break;
     }
     XSRETURN_EMPTY;
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh3_copy) {
+XS_INTERNAL(Digest_xxHash_xxxh_copy) {
     dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "dst, src");
-    {
-        IV dst = (IV)SvIV(ST(0));
-        IV src = (IV)SvIV(ST(1));
+    IV dst = SvIV(ST(0));
+    IV src = SvIV(ST(1));
+    UV type_code = SvUV(ST(2));
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
+        XXH32_copyState(INT2PTR(XXH32_state_t *, dst), INT2PTR(const XXH32_state_t *, src));
+        break;
+    case XXH_TYPE_XXH64:
+        XXH64_copyState(INT2PTR(XXH64_state_t *, dst), INT2PTR(const XXH64_state_t *, src));
+        break;
+    default:
         XXH3_copyState(INT2PTR(XXH3_state_t *, dst), INT2PTR(const XXH3_state_t *, src));
+        break;
     }
     XSRETURN_EMPTY;
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset) {
+XS_INTERNAL(Digest_xxHash_xxxh_reset) {
     dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        int RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        RETVAL = XXH3_64bits_reset(INT2PTR(XXH3_state_t *, ctx));
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSeed) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, seed");
-    {
-        int RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        UV seed = (UV)SvUV(ST(1));
-        RETVAL = XXH3_64bits_reset_withSeed(INT2PTR(XXH3_state_t *, ctx), seed);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSecret) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, secret");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_secret;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * secret = (const char *)SvPV(ST(1), STRLEN_length_of_secret);
-
-        RETVAL = XXH3_64bits_reset_withSecret(INT2PTR(XXH3_state_t *, ctx), secret, STRLEN_length_of_secret);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_reset_withSecretandSeed) {
-    dXSARGS;
-    if (items != 3)
-        croak_xs_usage(cv, "ctx, secret, seed");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_secret;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * secret = (const char *)SvPV(ST(1), STRLEN_length_of_secret);
-        UV seed = (UV)SvUV(ST(2));
-
-        RETVAL =
-            XXH3_64bits_reset_withSecretandSeed(INT2PTR(XXH3_state_t *, ctx), secret, STRLEN_length_of_secret, seed);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_update) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, input");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * input = (const char *)SvPV(ST(1), STRLEN_length_of_input);
-
-        RETVAL = XXH3_64bits_update(INT2PTR(XXH3_state_t *, ctx), input, STRLEN_length_of_input);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_digest) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        uint64_t RETVAL;
-        IV ctx = (IV)SvIV(ST(0));
-#if !MATH_INT64_NATIVE
-        PERL_MATH_INT64_LOAD;
-#endif
-        RETVAL = XXH3_64bits_digest(INT2PTR(const XXH3_state_t *, ctx));
-        {
-            SV * RETVALSV;
-            RETVALSV = newSVu64(RETVAL);
-            RETVALSV = sv_2mortal(RETVALSV);
-            ST(0) = RETVALSV;
-        }
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        IV ctx = (IV)SvIV(ST(0));
-        XXH3_128bits_reset(INT2PTR(XXH3_state_t *, ctx));
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSeed) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, seed");
-    {
-        IV ctx = (IV)SvIV(ST(0));
-        UV seed = (UV)SvUV(ST(1));
+    IV ctx = SvIV(ST(0));
+    UV type_code = SvUV(ST(1));
+    UV seed = SvUV(ST(2));
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
+        XXH32_reset(INT2PTR(XXH32_state_t *, ctx), (XXH32_hash_t)seed);
+        break;
+    case XXH_TYPE_XXH64:
+        XXH64_reset(INT2PTR(XXH64_state_t *, ctx), seed);
+        break;
+    case XXH_TYPE_XXH3_64:
+        XXH3_64bits_reset_withSeed(INT2PTR(XXH3_state_t *, ctx), seed);
+        break;
+    case XXH_TYPE_XXH3_128:
         XXH3_128bits_reset_withSeed(INT2PTR(XXH3_state_t *, ctx), seed);
+        break;
     }
     XSRETURN_EMPTY;
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSecret) {
+XS_INTERNAL(Digest_xxHash_xxxh_reset_withSecret) {
     dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, secret");
-    {
-        STRLEN STRLEN_length_of_secret;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * secret = (const char *)SvPV(ST(1), STRLEN_length_of_secret);
+    IV ctx = SvIV(ST(0));
+    UV type_code = SvUV(ST(1));
+    STRLEN len;
+    const char * secret = SvPV(ST(2), len);
+    if (type_code == XXH_TYPE_XXH3_64)
+        XXH3_64bits_reset_withSecret(INT2PTR(XXH3_state_t *, ctx), secret, len);
+    else
+        XXH3_128bits_reset_withSecret(INT2PTR(XXH3_state_t *, ctx), secret, len);
+    XSRETURN_EMPTY;
+}
 
-        XXH3_128bits_reset_withSecret(INT2PTR(XXH3_state_t *, ctx), secret, STRLEN_length_of_secret);
+XS_INTERNAL(Digest_xxHash_xxxh_update) {
+    dXSARGS;
+    IV ctx = SvIV(ST(0));
+    STRLEN len;
+    const char * input = SvPV(ST(1), len);
+    UV type_code = SvUV(ST(2));
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
+        XXH32_update(INT2PTR(XXH32_state_t *, ctx), input, len);
+        break;
+    case XXH_TYPE_XXH64:
+        XXH64_update(INT2PTR(XXH64_state_t *, ctx), input, len);
+        break;
+    case XXH_TYPE_XXH3_64:
+        XXH3_64bits_update(INT2PTR(XXH3_state_t *, ctx), input, len);
+        break;
+    case XXH_TYPE_XXH3_128:
+        XXH3_128bits_update(INT2PTR(XXH3_state_t *, ctx), input, len);
+        break;
     }
     XSRETURN_EMPTY;
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_reset_withSecretandSeed) {
+XS_INTERNAL(Digest_xxHash_xxxh_digest) {
     dXSARGS;
-    if (items != 3)
-        croak_xs_usage(cv, "ctx, secret, seed");
-    {
-        STRLEN STRLEN_length_of_secret;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * secret = (const char *)SvPV(ST(1), STRLEN_length_of_secret);
-        UV seed = (UV)SvUV(ST(2));
-
-        XXH3_128bits_reset_withSecretandSeed(INT2PTR(XXH3_state_t *, ctx), secret, STRLEN_length_of_secret, seed);
-    }
-    XSRETURN_EMPTY;
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_update) {
-    dXSARGS;
-    if (items != 2)
-        croak_xs_usage(cv, "ctx, input");
-    {
-        int RETVAL;
-        dXSTARG;
-        STRLEN STRLEN_length_of_input;
-        IV ctx = (IV)SvIV(ST(0));
-        const char * input = (const char *)SvPV(ST(1), STRLEN_length_of_input);
-
-        RETVAL = XXH3_128bits_update(INT2PTR(XXH3_state_t *, ctx), input, STRLEN_length_of_input);
-        TARGi((IV)RETVAL, 1);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_digest) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    PERL_UNUSED_VAR(ax); /* -Wall */
-    SP -= items;
-    {
-        IV ctx = (IV)SvIV(ST(0));
+    IV ctx = SvIV(ST(0));
+    UV type_code = SvUV(ST(1));
+#if !MATH_INT64_NATIVE
+    PERL_MATH_INT64_LOAD;
+#endif
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
+        ST(0) = sv_2mortal(newSVuv((UV)XXH32_digest(INT2PTR(const XXH32_state_t *, ctx))));
+        break;
+    case XXH_TYPE_XXH64:
+        ST(0) = sv_2mortal(newSVu64(XXH64_digest(INT2PTR(const XXH64_state_t *, ctx))));
+        break;
+    case XXH_TYPE_XXH3_64:
+        ST(0) = sv_2mortal(newSVu64(XXH3_64bits_digest(INT2PTR(const XXH3_state_t *, ctx))));
+        break;
+    case XXH_TYPE_XXH3_128:
         {
             XXH128_hash_t h = XXH3_128bits_digest(INT2PTR(const XXH3_state_t *, ctx));
-            XPUSHs(sv_2mortal(newSVu64(h.low64)));
-            XPUSHs(sv_2mortal(newSVu64(h.high64)));
+            char buf[16];
+            memcpy(buf, &h.low64, 8);
+            memcpy(buf + 8, &h.high64, 8);
+            ST(0) = sv_2mortal(newSVpvn(buf, 16));
+            break;
         }
-        PUTBACK;
-        return;
-    }
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh32_hex) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        char * RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        static char hexbuf[9];
-        write_hex32(hexbuf, (uint32_t)XXH32_digest(INT2PTR(const XXH32_state_t *, ctx)));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
-        ST(0) = TARG;
     }
     XSRETURN(1);
 }
 
-XS_INTERNAL(Digest_xxHash_xxxh64_hex) {
+XS_INTERNAL(Digest_xxHash_xxxh_hex) {
     dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        char * RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        static char hexbuf[17];
-        write_hex64(hexbuf, (uint64_t)XXH64_digest(INT2PTR(const XXH64_state_t *, ctx)));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_64bits_hex) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    {
-        char * RETVAL;
-        dXSTARG;
-        IV ctx = (IV)SvIV(ST(0));
-        static char hexbuf[17];
-        write_hex64(hexbuf, (uint64_t)XXH3_64bits_digest(INT2PTR(const XXH3_state_t *, ctx)));
-        RETVAL = hexbuf;
-        sv_setpv((SV *)TARG, RETVAL);
-        ST(0) = TARG;
-    }
-    XSRETURN(1);
-}
-
-XS_INTERNAL(Digest_xxHash_xxxh3_128bits_hex) {
-    dXSARGS;
-    if (items != 1)
-        croak_xs_usage(cv, "ctx");
-    PERL_UNUSED_VAR(ax); /* -Wall */
-    SP -= items;
-    {
-        IV ctx = (IV)SvIV(ST(0));
+    dXSTARG;
+    IV ctx = SvIV(ST(0));
+    UV type_code = SvUV(ST(1));
+    sv_setpvn(TARG, "", 0);
+    switch (type_code) {
+    case XXH_TYPE_XXH32:
         {
-            static char hexbuf[33];
-            XXH128_hash_t h = XXH3_128bits_digest(INT2PTR(const XXH3_state_t *, ctx));
-            write_hex64(hexbuf, (uint64_t)h.high64);
-            write_hex64(hexbuf + 16, (uint64_t)h.low64);
-            XPUSHs(sv_2mortal(newSVpvn(hexbuf, 32)));
+            char * buf = SvGROW(TARG, 9);
+            write_hex32(buf, (uint32_t)XXH32_digest(INT2PTR(const XXH32_state_t *, ctx)));
+            SvCUR_set(TARG, 8);
+            break;
         }
-        PUTBACK;
-        return;
+    case XXH_TYPE_XXH64:
+        {
+            char * buf = SvGROW(TARG, 17);
+            write_hex64(buf, (uint64_t)XXH64_digest(INT2PTR(const XXH64_state_t *, ctx)));
+            SvCUR_set(TARG, 16);
+            break;
+        }
+    case XXH_TYPE_XXH3_64:
+        {
+            char * buf = SvGROW(TARG, 17);
+            write_hex64(buf, (uint64_t)XXH3_64bits_digest(INT2PTR(const XXH3_state_t *, ctx)));
+            SvCUR_set(TARG, 16);
+            break;
+        }
+    case XXH_TYPE_XXH3_128:
+        {
+            XXH128_hash_t h = XXH3_128bits_digest(INT2PTR(const XXH3_state_t *, ctx));
+            char * buf = SvGROW(TARG, 33);
+            write_hex64(buf, (uint64_t)h.high64);
+            write_hex64(buf + 16, (uint64_t)h.low64);
+            SvCUR_set(TARG, 32);
+            break;
+        }
     }
+    ST(0) = TARG;
+    XSRETURN(1);
 }
 
 void boot_Digest__xxHash(pTHX_ CV * cv) {
     dVAR;
     dXSBOOTARGSXSAPIVERCHK;
-
-    PERL_UNUSED_VAR(cv);    /* -W */
-    PERL_UNUSED_VAR(items); /* -W */
+    PERL_UNUSED_VAR(cv);
+    PERL_UNUSED_VAR(items);
 
     (void)newXSproto_portable("Digest::xxHash::xxhash32", Digest_xxHash_xxhash32, __FILE__);
     (void)newXSproto_portable("Digest::xxHash::xxhash64", Digest_xxHash_xxhash64, __FILE__);
@@ -795,44 +488,13 @@ void boot_Digest__xxHash(pTHX_ CV * cv) {
     (void)newXSproto_portable("Digest::xxHash::xxh3_128_hex", Digest_xxHash_xxh3_128_hex, __FILE__);
     (void)newXSproto_portable(
         "Digest::xxHash::xxh3_generate_secret_from_seed", Digest_xxHash_xxh3_generate_secret_from_seed, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_create", Digest_xxHash_xxxh32_create, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_free", Digest_xxHash_xxxh32_free, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_copy", Digest_xxHash_xxxh32_copy, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_reset", Digest_xxHash_xxxh32_reset, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_update", Digest_xxHash_xxxh32_update, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_digest", Digest_xxHash_xxxh32_digest, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_create", Digest_xxHash_xxxh64_create, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_free", Digest_xxHash_xxxh64_free, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_copy", Digest_xxHash_xxxh64_copy, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_reset", Digest_xxHash_xxxh64_reset, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_update", Digest_xxHash_xxxh64_update, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_digest", Digest_xxHash_xxxh64_digest, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_create", Digest_xxHash_xxxh3_create, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_free", Digest_xxHash_xxxh3_free, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_copy", Digest_xxHash_xxxh3_copy, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_reset", Digest_xxHash_xxxh3_64bits_reset, __FILE__);
-    (void)newXSproto_portable(
-        "Digest::xxHash::_xxxh3_64bits_reset_withSeed", Digest_xxHash_xxxh3_64bits_reset_withSeed, __FILE__);
-    (void)newXSproto_portable(
-        "Digest::xxHash::_xxxh3_64bits_reset_withSecret", Digest_xxHash_xxxh3_64bits_reset_withSecret, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_reset_withSecretandSeed",
-                              Digest_xxHash_xxxh3_64bits_reset_withSecretandSeed,
-                              __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_update", Digest_xxHash_xxxh3_64bits_update, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_digest", Digest_xxHash_xxxh3_64bits_digest, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_reset", Digest_xxHash_xxxh3_128bits_reset, __FILE__);
-    (void)newXSproto_portable(
-        "Digest::xxHash::_xxxh3_128bits_reset_withSeed", Digest_xxHash_xxxh3_128bits_reset_withSeed, __FILE__);
-    (void)newXSproto_portable(
-        "Digest::xxHash::_xxxh3_128bits_reset_withSecret", Digest_xxHash_xxxh3_128bits_reset_withSecret, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_reset_withSecretandSeed",
-                              Digest_xxHash_xxxh3_128bits_reset_withSecretandSeed,
-                              __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_update", Digest_xxHash_xxxh3_128bits_update, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_digest", Digest_xxHash_xxxh3_128bits_digest, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh32_hex", Digest_xxHash_xxxh32_hex, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh64_hex", Digest_xxHash_xxxh64_hex, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_64bits_hex", Digest_xxHash_xxxh3_64bits_hex, __FILE__);
-    (void)newXSproto_portable("Digest::xxHash::_xxxh3_128bits_hex", Digest_xxHash_xxxh3_128bits_hex, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_create", Digest_xxHash_xxxh_create, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_free", Digest_xxHash_xxxh_free, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_copy", Digest_xxHash_xxxh_copy, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_reset", Digest_xxHash_xxxh_reset, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_reset_withSecret", Digest_xxHash_xxxh_reset_withSecret, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_update", Digest_xxHash_xxxh_update, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_digest", Digest_xxHash_xxxh_digest, __FILE__);
+    (void)newXSproto_portable("Digest::xxHash::_xxxh_hex", Digest_xxHash_xxxh_hex, __FILE__);
     Perl_xs_boot_epilog(aTHX_ ax);
 }

@@ -106,7 +106,7 @@ Creates a new hash context. Valid parameters:
 When `secret` is provided for XXH3 types, it overrides `seed`. Generate a proper secret with
 `xxh3_generate_secret(...)`.
 
-## add
+## `add()`
 
 ```
 $ctx->add($data);
@@ -115,7 +115,7 @@ $ctx->add($chunk1, $chunk2, $chunk3);
 
 Feeds data into the hash context. Can be called multiple times. Returns the context object for method chaining.
 
-## digest
+## `digest()`
 
 ```perl
 my $bytes = $ctx->digest;
@@ -123,7 +123,7 @@ my $bytes = $ctx->digest;
 
 Returns the raw hash value. For 128-bit hashes, returns 16 bytes (packed two little-endian uint64s).
 
-## hexdigest
+## `hexdigest()`
 
 ```perl
 my $hex = $ctx->hexdigest;
@@ -132,7 +132,7 @@ my $hex = $ctx->hexdigest;
 Returns the hash value as a lowercase hex string. Length depends on the hash type: 8 chars for XXH32, 16 for
 XXH3-64/XXH64, 32 for XXH3-128.
 
-## b64digest
+## `b64digest()`
 
 ```perl
 my $b64 = $ctx->b64digest;
@@ -140,7 +140,7 @@ my $b64 = $ctx->b64digest;
 
 Returns the hash value as base64-encoded data. Requires [MIME::Base64](https://metacpan.org/pod/MIME%3A%3ABase64).
 
-## clone
+## `clone()`
 
 ```perl
 my $copy = $ctx->clone;
@@ -148,7 +148,7 @@ my $copy = $ctx->clone;
 
 Creates an independent copy of the hash context. Modifying `$copy` does not affect `$ctx`.
 
-## reset
+## `reset()`
 
 ```
 $ctx->reset;
@@ -159,61 +159,55 @@ hash computation.
 
 # SPEED
 
-This module is the fastest xxHash implementation on CPAN and significantly faster than general-purpose hashes.
-Benchmarked on Windows x64 with Perl v5.42 (Strawberry, GCC `-O3 -msse2 -msse4.2`) against [Crypt::xxHash](https://metacpan.org/pod/Crypt%3A%3AxxHash) and
-standard digest modules. Run `eg/benchmark.pl` to reproduce.
+Thanks to xxHash, this module is significantly faster than general-purpose hashes found on CPAN. Benchmarked across 5
+platforms with Perl v5.42 against [Crypt::xxHash](https://metacpan.org/pod/Crypt%3A%3AxxHash) and standard digest modules. Run `eg/benchmark.pl` to reproduce.
+[Crypt::xxHash](https://metacpan.org/pod/Crypt%3A%3AxxHash) refuses to build on macOS, so... no benchmarks there to compare.
 
 ## XXH3 functional interface (MB/s, higher is better)
 
 ```
-                      16 bytes    1 KB     64 KB     1 MB
-------------------------------------------------------------
-xxh3_64              235.5     9,007    22,136    23,371
-xxh3_128             176.9     7,561    20,191    22,113
-Crypt::xxHash xxh64  120.3     5,951    21,531    23,134
-Digest::MD5           76.2       777       907       913
+                     Linux x64   Win x64   macOS Intel   macOS ARM    Linux ARM
+-------------------------------------------------------------------------------
+xxh3_64                 16,438    16,550         9,968      32,279       19,854
+xxh3_128                16,346    16,442        14,204      32,989       19,747
+Crypt::xxHash xxh64      8,832     8,909            --          --           --
 ```
-
-- **XXH3-64 beats Crypt::xxHash by up to 96%** at small inputs and matches at large inputs
-- **XXH3-128 beats Crypt::xxHash by up to 266%** at small inputs (3.6x faster at 16 bytes)
-- **XXH3-128 is 10x faster than MD5** at 1KB
 
 ## Streaming interface (1MB fed in 64KB chunks)
 
 ```
-xxh3_64    18,892 MB/s
-xxh3_128   18,656 MB/s
-xxh64      15,324 MB/s
-xxh32       8,272 MB/s
-MD5           923 MB/s
+                     Linux x64   Win x64   macOS Intel   macOS ARM    Linux ARM
+-------------------------------------------------------------------------------
+xxh3_64                 13,746    13,203         6,681      13,044       16,719
+xxh3_128                13,684    13,054         6,847      13,543       16,614
+xxh64                   10,745    10,459         5,481      11,640       17,978
+xxh32                    5,731     5,670         3,530       3,079       10,139
+Crypt::xxHash stream    11,923    11,776            --          --           --
+MD5                        610       615           511         488          538
 ```
-
-- **Streaming xxh3\_64 is 11% faster** than Crypt::xxHash streaming (18,892 vs 17,091 MB/s)
-- **Streaming xxh3\_128 is 9% faster** (18,656 vs 17,091 MB/s)
 
 ## Hex output (functional, 1KB input)
 
 ```
-xxh3_64_hex           8,324 MB/s
-xxh3_128_hex          7,687 MB/s
-xxhash64_hex          6,527 MB/s
-xxhash32_hex          5,532 MB/s
-Crypt::xxh3_64_hex    3,719 MB/s
-Digest::MD5::md5_hex    748 MB/s
+                     Linux x64   Win x64   macOS Intel   macOS ARM    Linux ARM
+-------------------------------------------------------------------------------
+xxh3_64_hex              5,721     5,544         2,217       8,513        5,861
+xxh3_128_hex             5,577     5,113         2,150       7,559        5,548
+Crypt::xxh3_64_hex       4,765     2,002            --          --           --
+Crypt::xxh3_128_hex      3,912     1,544            --          --           --
+Digest::MD5::md5_hex       525       494           345         423          467
 ```
-
-- **Hex functions use manual nibble writes** instead of `sprintf`, eliminating format string parsing
-- **xxh3\_64\_hex is 2.2x faster** than Crypt::xxHash's equivalent
-- **xxh3\_128\_hex is 2.1x faster** than Crypt::xxHash's 128-bit hex
-
-# LICENSE
-
-xxHash is covered by the BSD license.
-
-Digest::xxHash is covered by the Artistic 2 license.
 
 # AUTHOR
 
 Sanko Robinson [https://github.com/sanko](https://github.com/sanko)
 
-xxHash by Yann Collet.
+xxHash by Yann Collet [https://xxhash.com/](https://xxhash.com/)
+
+# COPYRIGHT
+
+Copyright (C) 2013 by Sanko Robinson.
+
+This library is free software; you can redistribute it and/or modify it under the terms of the Artistic License 2.0.
+
+xxHash is covered by the BSD license.

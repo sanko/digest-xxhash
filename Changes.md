@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Updated bundled xxHash submodule from v0.6.0 to v0.8.3 (#5)
+- `Math::Int64` is now recommended and not required on 64-bit Perl
 
 ### Fixed
 
