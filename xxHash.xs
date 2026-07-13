@@ -37,7 +37,9 @@ xxhash32( const char *input, int length(input), UV seed )
 uint64_t
 xxhash64( const char *input, int length(input), UV seed )
     CODE:
-        PERL_MATH_INT64_LOAD;
+#if !MATH_INT64_NATIVE
+        PERL_MATH_INT64_LOAD; /* only 32-bit perls need Math::Int64 to build the SV */
+#endif
         RETVAL = XXH64(input, STRLEN_length_of_input, seed);
     OUTPUT:
         RETVAL
