@@ -1,8 +1,15 @@
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+// Disables the implicit 'pTHX_' context pointer argument, which is good practice for
+// modern Perl XS code that uses the 'aTHX_' macro explicitly.
+#define PERL_NO_GET_CONTEXT 1
+#include <EXTERN.h>
+#include <perl.h>
+// Disables Perl's internal locking mechanisms for certain structures.
+// This is often used when the XS module manages its own thread safety.
+#define NO_XSLOCKS
+#include <XSUB.h>
 
 #include "ppport.h"
+#include <inttypes.h>
 
 /* define int64_t and uint64_t when using MinGW compiler */
 #ifdef __MINGW32__
@@ -27,30 +34,51 @@ MODULE = Digest::xxHash  PACKAGE = Digest::xxHash
 
 PROTOTYPES: DISABLE
 
-U32
+UV
 xxhash32( const char *input, int length(input), UV seed )
     CODE:
-        RETVAL = XXH32(input, STRLEN_length_of_input, seed);
+        RETVAL = (UV)XXH32(input, STRLEN_length_of_input, seed);
     OUTPUT:
         RETVAL
 
-uint64_t
+UV
 xxhash64( const char *input, int length(input), UV seed )
     CODE:
-#if !MATH_INT64_NATIVE
-        PERL_MATH_INT64_LOAD;
-#endif
-        RETVAL = XXH64(input, STRLEN_length_of_input, seed);
+        RETVAL = (UV)XXH64(input, STRLEN_length_of_input, seed);
     OUTPUT:
         RETVAL
 
-uint64_t
+UV
 xxh3_64( const char *input, int length(input), UV seed )
     CODE:
-#if !MATH_INT64_NATIVE
-        PERL_MATH_INT64_LOAD;
-#endif
-        RETVAL = XXH3_64bits_withSeed(input, STRLEN_length_of_input, seed);
+        RETVAL = (UV)XXH3_64bits_withSeed(input, STRLEN_length_of_input, seed);
+    OUTPUT:
+        RETVAL
+
+char*
+xxhash32_hex( const char *input, int length(input), UV seed )
+    CODE:
+        static char hexbuf[9];
+        sprintf(hexbuf, "%08x", (uint32_t)XXH32(input, STRLEN_length_of_input, seed));
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
+
+char*
+xxhash64_hex( const char *input, int length(input), UV seed )
+    CODE:
+        static char hexbuf[17];
+        sprintf(hexbuf, "%016" PRIx64, (uint64_t)XXH64(input, STRLEN_length_of_input, seed));
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
+
+char*
+xxh3_64_hex( const char *input, int length(input), UV seed )
+    CODE:
+        static char hexbuf[17];
+        sprintf(hexbuf, "%016" PRIx64, (uint64_t)XXH3_64bits_withSeed(input, STRLEN_length_of_input, seed));
+        RETVAL = hexbuf;
     OUTPUT:
         RETVAL
 
@@ -62,6 +90,16 @@ xxh3_128( const char *input, int length(input), UV seed )
         XPUSHs(sv_2mortal(newSVu64(h.low64)));
         XPUSHs(sv_2mortal(newSVu64(h.high64)));
     }
+
+char*
+xxh3_128_hex( const char *input, int length(input), UV seed )
+    CODE:
+        static char hexbuf[33];
+        XXH128_hash_t h = XXH3_128bits_withSeed(input, STRLEN_length_of_input, seed);
+        sprintf(hexbuf, "%016" PRIx64 "%016" PRIx64, (uint64_t)h.high64, (uint64_t)h.low64);
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
 
 void
 xxh3_generate_secret_from_seed( UV seed )
@@ -247,4 +285,41 @@ _xxxh3_128bits_digest( IV ctx )
         XXH128_hash_t h = XXH3_128bits_digest(INT2PTR(const XXH3_state_t*, ctx));
         XPUSHs(sv_2mortal(newSVu64(h.low64)));
         XPUSHs(sv_2mortal(newSVu64(h.high64)));
+    }
+
+char*
+_xxxh32_hex( IV ctx )
+    CODE:
+        static char hexbuf[9];
+        sprintf(hexbuf, "%08x", (uint32_t)XXH32_digest(INT2PTR(const XXH32_state_t*, ctx)));
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
+
+char*
+_xxxh64_hex( IV ctx )
+    CODE:
+        static char hexbuf[17];
+        sprintf(hexbuf, "%016" PRIx64, (uint64_t)XXH64_digest(INT2PTR(const XXH64_state_t*, ctx)));
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
+
+char*
+_xxxh3_64bits_hex( IV ctx )
+    CODE:
+        static char hexbuf[17];
+        sprintf(hexbuf, "%016" PRIx64, (uint64_t)XXH3_64bits_digest(INT2PTR(const XXH3_state_t*, ctx)));
+        RETVAL = hexbuf;
+    OUTPUT:
+        RETVAL
+
+void
+_xxxh3_128bits_hex( IV ctx )
+    PPCODE:
+    {
+        static char hexbuf[33];
+        XXH128_hash_t h = XXH3_128bits_digest(INT2PTR(const XXH3_state_t*, ctx));
+        sprintf(hexbuf, "%016" PRIx64 "%016" PRIx64, (uint64_t)h.high64, (uint64_t)h.low64);
+        XPUSHs(sv_2mortal(newSVpvn(hexbuf, 32)));
     }

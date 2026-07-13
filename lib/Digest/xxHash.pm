@@ -5,20 +5,6 @@ package Digest::xxHash 3.00 {
     use Config ();
     use XSLoader;
 
-    # Math::Int64 is only needed on 32-bit Perl for 64-bit integer handling
-    my $_64BIT = $Config::Config{ivsize} >= 8;
-    my ( $uint64_to_hex, $hex_to_uint64 );
-    if ($_64BIT) {
-        $uint64_to_hex = sub { sprintf '%016x', $_[0] };
-        $hex_to_uint64 = sub { hex( $_[0] ) };
-    }
-    else {
-        require Math::Int64;
-        Math::Int64->import(qw[uint64_to_hex hex_to_uint64]);
-        $uint64_to_hex = \&Math::Int64::uint64_to_hex;
-        $hex_to_uint64 = \&Math::Int64::hex_to_uint64;
-    }
-
     BEGIN {
         XSLoader::load __PACKAGE__, our $VERSION;
     }
@@ -29,16 +15,6 @@ package Digest::xxHash 3.00 {
         xxh3_128 xxh3_128_hex
         xxh3_generate_secret
     ];
-
-    # Functional wrappers
-    sub xxhash32_hex { unpack 'H8', pack 'N', xxhash32(@_) }
-    sub xxhash64_hex { lc sprintf '%016s', $uint64_to_hex->( xxhash64(@_) ) }
-    sub xxh3_64_hex  { lc sprintf '%016s', $uint64_to_hex->( xxh3_64(@_) ) }
-
-    sub xxh3_128_hex {
-        my ( $low, $high ) = xxh3_128(@_);
-        return lc sprintf '%016s%016s', $uint64_to_hex->($high), $uint64_to_hex->($low);
-    }
     sub xxh3_generate_secret { xxh3_generate_secret_from_seed(@_) }
 
     # Digest-style OO interface
@@ -123,13 +99,10 @@ package Digest::xxHash 3.00 {
     sub hexdigest {
         my ($self) = @_;
         my $type = $self->{type};
-        return unpack 'H8', pack 'N', _xxxh32_digest( $self->{ctx} ) if $type eq 'xxh32';
-        return lc sprintf '%016s', $uint64_to_hex->( _xxxh64_digest( $self->{ctx} ) )       if $type eq 'xxh64';
-        return lc sprintf '%016s', $uint64_to_hex->( _xxxh3_64bits_digest( $self->{ctx} ) ) if $type eq 'xxh3_64';
-        if ( $type eq 'xxh3_128' ) {
-            my ( $low, $high ) = _xxxh3_128bits_digest( $self->{ctx} );
-            return lc sprintf '%016s%016s', $uint64_to_hex->($high), $uint64_to_hex->($low);
-        }
+        return _xxxh32_hex( $self->{ctx} )        if $type eq 'xxh32';
+        return _xxxh64_hex( $self->{ctx} )        if $type eq 'xxh64';
+        return _xxxh3_64bits_hex( $self->{ctx} )  if $type eq 'xxh3_64';
+        return _xxxh3_128bits_hex( $self->{ctx} ) if $type eq 'xxh3_128';
     }
 
     sub b64digest {
