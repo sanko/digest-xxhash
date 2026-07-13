@@ -87,7 +87,7 @@ my $build = $class->new(
     needs_compiler       => 1,
     extra_compiler_flags => [@cc_flags],
     extra_linker_flags   => [@cc_flags],
-    include_dirs         => ['.'],
+    include_dirs         => ['.', 'lib/Digest'],
     c_source             => [ 'ext/xxHash', 'ext/perl_math_int64' ]
 );
 $build->create_build_script;

@@ -108,5 +108,4 @@ lib/Digest/ppport.h
 lib/Digest/xxHash.c
 lib/Digest/xxHash.pm
 lib/Digest/xxHash.pod
-ppport.h
 t/001_basic.t
