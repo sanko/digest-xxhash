@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- XXH3-64 and XXH3-128 single-shot hashing functions (`xxh3_64`, `xxh3_64_hex`, `xxh3_128_hex`)
-- Digest-style OO streaming interface (`new`, `add`, `digest`, `hexdigest`, `b64digest`, `clone`, `reset`) for XXH32, XXH64, XXH3-64, and XXH3-128
+- XXH3-64 and XXH3-128 single-shot hashing functions (#7)
+- Digest-style OO streaming interface for XXH32, XXH64, XXH3-64, and XXH3-128 (#6)
 - `xxh3_generate_secret` function for custom secret-based XXH3 hashing
 - Secret-based hashing via the OO interface (`secret` parameter)
 
 ### Changed
 
-- Updated bundled xxHash submodule from v0.6.0 to v0.7.4
+- Updated bundled xxHash submodule from v0.6.0 to v0.8.3 (#5)
 
 ### Fixed
 
