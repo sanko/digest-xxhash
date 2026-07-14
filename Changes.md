@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.00] - 2026-07-14
 
 ### Added
 
@@ -92,7 +92,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Initial release
 
-[Unreleased]: https://github.com/sanko/digest-xxhash/compare/2.04...HEAD
+[Unreleased]: https://github.com/sanko/digest-xxhash/compare/3.00...HEAD
+[3.00]: https://github.com/sanko/digest-xxhash/compare/2.04...3.00
 [2.04]: https://github.com/sanko/digest-xxhash/compare/2.03...2.04
 [2.03]: https://github.com/sanko/digest-xxhash/compare/2.02...2.03
 [2.02]: https://github.com/sanko/digest-xxhash/compare/2.01...2.02
