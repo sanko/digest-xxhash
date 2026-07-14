@@ -1,33 +1,33 @@
 {
-"Linux:Intel": "success"
+"Linux:Intel": "failure"
 ,
-"Linux:ARM": "success"
+"Linux:ARM": "failure"
 ,
-"Linux:RISC-V": "success"
+"Linux:RISC-V": "failure"
 ,
-"macOS:Intel": "success"
+"macOS:Intel": "failure"
 ,
-"macOS:Apple Silicon": "success"
+"macOS:Apple Silicon": "failure"
 ,
-"Windows:Intel": "success"
+"Windows:Intel": "failure"
 ,
-"Windows:ARM": "success"
+"Windows:ARM": "failure"
 ,
-"DragonFly_BSD:Intel": "success"
+"DragonFly_BSD:Intel": "failure"
 ,
-"FreeBSD:Intel": "success"
+"FreeBSD:Intel": "failure"
 ,
-"FreeBSD:ARM": "success"
+"FreeBSD:ARM": "failure"
 ,
-"Haiku:Intel": "success"
+"Haiku:Intel": "failure"
 ,
-"MidnightBSD:Intel": "success"
+"MidnightBSD:Intel": "failure"
 ,
-"NetBSD:Intel": "success"
+"NetBSD:Intel": "failure"
 ,
-"NetBSD:ARM": "success"
+"NetBSD:ARM": "failure"
 ,
-"OpenBSD:Intel": "success"
+"OpenBSD:Intel": "failure"
 ,
-"OpenBSD:ARM": "success"
+"OpenBSD:ARM": "failure"
 }
