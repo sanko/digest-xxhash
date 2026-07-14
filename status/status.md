@@ -13,7 +13,7 @@
 | FreeBSD | ARM | ✅ |
 | Haiku | Intel | ✅ |
 | MidnightBSD | Intel | ✅ |
-| NetBSD | Intel | ✅ |
+| NetBSD | Intel | ❌ |
 | NetBSD | ARM | ✅ |
 | OpenBSD | Intel | ✅ |
 | OpenBSD | ARM | ✅ |
