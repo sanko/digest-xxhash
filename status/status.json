@@ -13,7 +13,7 @@
 ,
 "Windows:ARM": "success"
 ,
-"DragonFly_BSD:Intel": "failure"
+"DragonFly_BSD:Intel": "success"
 ,
 "FreeBSD:Intel": "success"
 ,
@@ -23,7 +23,7 @@
 ,
 "MidnightBSD:Intel": "success"
 ,
-"NetBSD:Intel": "success"
+"NetBSD:Intel": "failure"
 ,
 "NetBSD:ARM": "success"
 ,
