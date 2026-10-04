@@ -23,7 +23,7 @@
 ,
 "MidnightBSD:Intel": "success"
 ,
-"NetBSD:Intel": "failure"
+"NetBSD:Intel": "success"
 ,
 "NetBSD:ARM": "success"
 ,
